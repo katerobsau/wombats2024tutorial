@@ -1,0 +1,2281 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<script src="wombats_tutorial_files/libs/clipboard/clipboard.min.js"></script>
+<script src="wombats_tutorial_files/libs/quarto-html/tabby.min.js"></script>
+<script src="wombats_tutorial_files/libs/quarto-html/popper.min.js"></script>
+<script src="wombats_tutorial_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="wombats_tutorial_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="wombats_tutorial_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
+<link href="wombats_tutorial_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.2.269">
+
+  <meta name="author" content="Kate Saunders">
+  <title>An Introduction to Extreme Value Theory in R</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="wombats_tutorial_files/libs/revealjs/dist/reset.css">
+  <link rel="stylesheet" href="wombats_tutorial_files/libs/revealjs/dist/reveal.css">
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      { color: #003b4f; background-color: #f1f3f5; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #003b4f; } /* Normal */
+    code span.al { color: #ad0000; } /* Alert */
+    code span.an { color: #5e5e5e; } /* Annotation */
+    code span.at { color: #657422; } /* Attribute */
+    code span.bn { color: #ad0000; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #003b4f; } /* ControlFlow */
+    code span.ch { color: #20794d; } /* Char */
+    code span.cn { color: #8f5902; } /* Constant */
+    code span.co { color: #5e5e5e; } /* Comment */
+    code span.cv { color: #5e5e5e; font-style: italic; } /* CommentVar */
+    code span.do { color: #5e5e5e; font-style: italic; } /* Documentation */
+    code span.dt { color: #ad0000; } /* DataType */
+    code span.dv { color: #ad0000; } /* DecVal */
+    code span.er { color: #ad0000; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #ad0000; } /* Float */
+    code span.fu { color: #4758ab; } /* Function */
+    code span.im { color: #00769e; } /* Import */
+    code span.in { color: #5e5e5e; } /* Information */
+    code span.kw { color: #003b4f; } /* Keyword */
+    code span.op { color: #5e5e5e; } /* Operator */
+    code span.ot { color: #003b4f; } /* Other */
+    code span.pp { color: #ad0000; } /* Preprocessor */
+    code span.sc { color: #5e5e5e; } /* SpecialChar */
+    code span.ss { color: #20794d; } /* SpecialString */
+    code span.st { color: #20794d; } /* String */
+    code span.va { color: #111111; } /* Variable */
+    code span.vs { color: #20794d; } /* VerbatimString */
+    code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+    }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
+  <link rel="stylesheet" href="wombats_tutorial_files/libs/revealjs/dist/theme/quarto.css" id="theme">
+  <link rel="stylesheet" href="mathstyle.css">
+  <link href="wombats_tutorial_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
+  <link href="wombats_tutorial_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
+  <link href="wombats_tutorial_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="wombats_tutorial_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
+  <style type="text/css">
+
+  .callout {
+    margin-top: 1em;
+    margin-bottom: 1em;  
+    border-radius: .25rem;
+  }
+
+  .callout.callout-style-simple { 
+    padding: 0em 0.5em;
+    border-left: solid #acacac .3rem;
+    border-right: solid 1px silver;
+    border-top: solid 1px silver;
+    border-bottom: solid 1px silver;
+    display: flex;
+  }
+
+  .callout.callout-style-default {
+    border-left: solid #acacac .3rem;
+    border-right: solid 1px silver;
+    border-top: solid 1px silver;
+    border-bottom: solid 1px silver;
+  }
+
+  .callout .callout-body-container {
+    flex-grow: 1;
+  }
+
+  .callout.callout-style-simple .callout-body {
+    font-size: 1rem;
+    font-weight: 400;
+  }
+
+  .callout.callout-style-default .callout-body {
+    font-size: 0.9rem;
+    font-weight: 400;
+  }
+
+  .callout.callout-captioned.callout-style-simple .callout-body {
+    margin-top: 0.2em;
+  }
+
+  .callout:not(.callout-captioned) .callout-body {
+      display: flex;
+  }
+
+  .callout:not(.no-icon).callout-captioned.callout-style-simple .callout-content {
+    padding-left: 1.6em;
+  }
+
+  .callout.callout-captioned .callout-header {
+    padding-top: 0.2em;
+    margin-bottom: -0.2em;
+  }
+
+  .callout.callout-captioned .callout-caption  p {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+    
+  .callout.callout-captioned.callout-style-simple .callout-content  p {
+    margin-top: 0;
+  }
+
+  .callout.callout-captioned.callout-style-default .callout-content  p {
+    margin-top: 0.7em;
+  }
+
+  .callout.callout-style-simple div.callout-caption {
+    border-bottom: none;
+    font-size: .9rem;
+    font-weight: 600;
+    opacity: 75%;
+  }
+
+  .callout.callout-style-default  div.callout-caption {
+    border-bottom: none;
+    font-weight: 600;
+    opacity: 85%;
+    font-size: 0.9rem;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+  }
+
+  .callout.callout-style-default div.callout-content {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+  }
+
+  .callout.callout-style-simple .callout-icon::before {
+    height: 1rem;
+    width: 1rem;
+    display: inline-block;
+    content: "";
+    background-repeat: no-repeat;
+    background-size: 1rem 1rem;
+  }
+
+  .callout.callout-style-default .callout-icon::before {
+    height: 0.9rem;
+    width: 0.9rem;
+    display: inline-block;
+    content: "";
+    background-repeat: no-repeat;
+    background-size: 0.9rem 0.9rem;
+  }
+
+  .callout-caption {
+    display: flex
+  }
+    
+  .callout-icon::before {
+    margin-top: 1rem;
+    padding-right: .5rem;
+  }
+
+  .callout.no-icon::before {
+    display: none !important;
+  }
+
+  .callout.callout-captioned .callout-body > .callout-content > :last-child {
+    margin-bottom: 0.5rem;
+  }
+
+  .callout.callout-captioned .callout-icon::before {
+    margin-top: .5rem;
+    padding-right: .5rem;
+  }
+
+  .callout:not(.callout-captioned) .callout-icon::before {
+    margin-top: 1rem;
+    padding-right: .5rem;
+  }
+
+  /* Callout Types */
+
+  div.callout-note {
+    border-left-color: #4582ec !important;
+  }
+
+  div.callout-note .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAEU0lEQVRYCcVXTWhcVRQ+586kSUMMxkyaElstCto2SIhitS5Ek8xUKV2poatCcVHtUlFQk8mbaaziwpWgglJwVaquitBOfhQXFlqlzSJpFSpIYyXNjBNiTCck7x2/8/LeNDOZxDuEkgOXe++553zfefee+/OYLOXFk3+1LLrRdiO81yNqZ6K9cG0P3MeFaMIQjXssE8Z1JzLO9ls20MBZX7oG8w9GxB0goaPrW5aNMp1yOZIa7Wv6o2ykpLtmAPs/vrG14Z+6d4jpbSKuhdcSyq9wGMPXjonwmESXrriLzFGOdDBLB8Y6MNYBu0dRokSygMA/mrun8MGFN3behm6VVAwg4WR3i6FvYK1T7MHo9BK7ydH+1uurECoouk5MPRyVSBrBHMYwVobG2aOXM07sWrn5qgB60rc6mcwIDJtQrnrEr44kmy+UO9r0u9O5/YbkS9juQckLed3DyW2XV/qWBBB3ptvI8EUY3I9p/67OW+g967TNr3Sotn3IuVlfMLVnsBwH4fsnebJvyGm5GeIUA3jljERmrv49SizPYuq+z7c2H/jlGC+Ghhupn/hcapqmcudB9jwJ/3jvnvu6vu5lVzF1fXyZuZZ7U8nRmVzytvT+H3kilYvH09mLWrQdwFSsFEsxFVs5fK7A0g8gMZjbif4ACpKbjv7gNGaD8bUrlk8x+KRflttr22JEMRUbTUwwDQScyzPgedQHZT0xnx7ujw2jfVfExwYHwOsDTjLdJ2ebmeQIlJ7neo41s/DrsL3kl+W2lWvAga0tR3zueGr6GL78M3ifH0rGXrBC2aAR8uYcIA5gwV8zIE8onoh8u0Fca/ciF7j1uOzEnqcIm59sEXoGc0+z6+H45V1CvAvHcD7THztu669cnp+L0okAeIc6zjbM/24LgGM1gZk7jnRu1aQWoU9sfUOuhrmtaPIO3YY1KLLWZaEO5TKUbMY5zx8W9UJ6elpLwKXbsaZ4EFl7B4bMtDv0iRipKoDQT2sNQI9b1utXFdYisi+wzZ/ri/1m7QfDgEuvgUUEIJPq3DhX/5DWNqIXDOweC2wvIR90Oq3lDpdMIgD2r0dXvGdsEW5H6x6HLRJYU7C69VefO1x8Gde1ZFSJLfWS1jbCnhtOPxmpfv2LXOA2Xk2tvnwKKPFuZ/oRmwBwqRQDcKNeVQkYcOjtWVBuM/JuYw5b6isojIkYxyYAFn5K7ZBF10fea52y8QltAg6jnMqNHFBmGkQ1j+U43HMi2xMar1Nv0zGsf1s8nUsmUtPOOrbFIR8bHFDMB5zL13Gmr/kGlCkUzedTzzmzsaJXhYawnA3UmARpiYj5ooJZiUoxFRtK3X6pgNPv+IZVPcnwbOl6f+aBaO1CNvPW9n9LmCp01nuSaTRF2YxHqZ8DYQT6WsXT+RD6eUztwYLZ8rM+rcPxamv1VQzFUkzFXvkiVrySGQgJNvXHJAxiU3/NwiC03rSf05VBaPtu/Z7/B8Yn/w7eguloAAAAAElFTkSuQmCC');
+  }
+
+  div.callout-note.callout-style-default .callout-caption {
+    background-color: #dae6fb
+  }
+
+  div.callout-important {
+    border-left-color: #d9534f !important;
+  }
+
+  div.callout-important .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAEKklEQVRYCcVXTWhcVRS+575MJym48A+hSRFr00ySRQhURRfd2HYjk2SSTokuBCkU2o0LoSKKraKIBTcuFCoidGFD08nkBzdREbpQ1EDNIv8qSGMFUboImMSZd4/f9zJv8ibJMC8xJQfO3HPPPef7zrvvvnvviIkpC9nsw0UttFunbUhpFzFtarSd6WJkStVMw5xyVqYTvkwfzuf/5FgtkVoB0729j1rjXwThS7Vio+Mo6DNnvLfahoZ+i/o32lULuJ3NNiz7q6+pyAUkJaFF6JwaM2lUJlV0MlnQn5aTRbEu0SEqHUa0A4AdiGuB1kFXRfVyg5d87+Dg4DL6m2TLAub60ilj7A1Ec4odSAc8X95sHh7+ZRPCFo6Fnp7HfU/fBng/hi10CjCnWnJjsxvDNxWw0NfV6Rv5GgP3I3jGWXumdTD/3cbEOP2ZbOZp69yniG3FQ9z1jD7bnBu9Fc2tKGC2q+uAJOQHBDRiZX1x36o7fWBs7J9ownbtO+n0/qWkvW7UPIfc37WgT6ZGR++EOJyeQDSb9UB+DZ1G6DdLDzyS+b/kBCYGsYgJbSQHuThGKRcw5xdeQf8YdNHsc6ePXrlSYMBuSIAFTGAtQo+VuALo4BX83N190NWZWbynBjhOHsmNfFWLeL6v+ynsA58zDvvAC8j5PkbOcXCMg2PZFk3q8MjI7WAG/Dp9AwP7jdGBOOQkAvlFUB+irtm16I1Zw9YBcpGTGXYmk3kQIC/Cds55l+iMI3jqhjAuaoe+am2Jw5GT3Nbz3CkE12NavmzN5+erJW7046n/CH1RO/RVa8lBLozXk9uqykkGAyRXLWlLv5jyp4RFsG5vGVzpDLnIjTWgnRy2Rr+tDKvRc7Y8AyZq10jj8DqXdnIRNtFZb+t/ZRtXcDiVnzpqx8mPcDWxgARUqx0W1QB9MeUZiNrV4qP+Ehc+BpNgATsTX8ozYKL2NtFYAHc84fG7ndxUPr+AR/iQSns7uSUufAymwDOb2+NjK27lEFocm/EE2WpyIy/Hi66MWuMKJn8RvxIcj87IM5Vh9663ziW36kR0HNenXuxmfaD8JC7tfKbrhFr7LiZCrMjrzTeGx+PmkosrkNzW94ObzwocJ7A1HokLolY+AvkTiD/q1H0cN48c5EL8Crkttsa/AXQVDmutfyku0E7jShx49XqV3MFK8IryDhYVbj7Sj2P2eBxwcXoe8T8idsKKPRcnZw1b+slFTubwUwhktrfnAt7J++jwQtLZcm3sr9LQrjRzz6cfMv9aLvgmnAGvpoaGLxM4mAEaLV7iAzQ3oU0IvD5x9ix3yF2RAAuYAOO2f7PEFWCXZ4C9Pb2UsgDeVnFSpbFK7/IWu7TPTvBqzbGdCHOJQSxiEjt6IyZmxQyEJHv6xyQsYk//moVFsN2zP6fRImjfq7/n/wFDguUQFNEwugAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-important.callout-style-default .callout-caption {
+    background-color: #f7dddc
+  }
+
+  div.callout-warning {
+    border-left-color: #f0ad4e !important;
+  }
+
+  div.callout-warning .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAETklEQVRYCeVWW2gcVRg+58yaTUnizqbipZeX4uWhBEniBaoUX1Ioze52t7sRq6APio9V9MEaoWlVsFasRq0gltaAPuxms8lu0gcviE/FFOstVbSIxgcv6SU7EZqmdc7v9+9mJtNks51NTUH84ed889/PP+cmxP+d5FIbMJmNbpREu4WUkiTtCicKny0l1pIKmBzovF2S+hIJHX8iEu3hZJ5lNZGqyRrGSIQpq15AzF28jgpeY6yk6GVdrfFqdrD6Iw+QlB8g0YS2g7dyQmXM/IDhBhT0UCiRf59lfqmmDvzRt6kByV/m4JjtzuaujMUM2c5Z2d6JdKrRb3K2q6mA+oYVz8JnDdKPmmNthzkAk/lN63sYPgevrguc72aZX/L9C6x09GYyxBgCX4NlvyGUHOKELlm5rXeR1kchuChJt4SSwyddZRXgvwMGvYo4QSlk3/zkHD8UHxwVJA6zjZZqP8v8kK8OWLnIZtLyCAJagYC4rTGW/9Pqj92N/c+LUaAj27movwbi19tk/whRCIE7Q9vyI6yvRpftAKVTdUjOW40X3h5OXsKCdmFcx0xlLJoSuQngnrJe7Kcjm4OMq9FlC7CMmScQANuNvjfP3PjGXDBaUQmbp296S5L4DrpbrHN1T87ZVEZVCzg1FF0Ft+dKrlLukI+/c9ENo+TvlTDbYFvuKPtQ9+l052rXrgKoWkDAFnvh0wTOmYn8R5f4k/jN/fZiCM1tQx9jQQ4ANhqG4hiL0qIFTGViG9DKB7GYzgubnpofgYRwO+DFjh0Zin2m4b/97EDkXkc+f6xYAPX0KK2I/7fUQuwzuwo/L3AkcjugPNixC8cHf0FyPjWlItmLxWw4Ou9YsQCr5fijMGoD/zpdRy95HRysyXA74MWOnscpO4j2y3HAVisw85hX5+AFBRSHt4ShfLFkIMXTqyKFc46xdzQM6XbAi702a7sy04J0+feReMFKp5q9esYLCqAZYw/k14E/xcLLsFElaornTuJB0svMuJINy8xkIYuL+xPAlWRceH6+HX7THJ0djLUom46zREu7tTkxwmf/FdOZ/sh6Q8qvEAiHpm4PJ4a/doJe0gH1t+aHRgCzOvBvJedEK5OFE5jpm4AGP2a8Dxe3gGJ/pAutug9Gp6he92CsSsWBaEcxGx0FHytmIpuqGkOpldqNYQK8cSoXvd+xLxXADw0kf6UkJNFtdo5MOgaLjiQOQHcn+A6h5NuL2s0qsC2LOM75PcF3yr5STuBSAcGG+meA14K/CI21HcS4LBT6tv0QAh8Dr5l93AhZzG5ZJ4VxAqdZUEl9z7WJ4aN+svMvwHHL21UKTd1mqvChH7/Za5xzXBBKrUcB0TQ+Ulgkfbi/H/YT5EptrGzsEK7tR1B7ln9BBwckYfMiuSqklSznIuoIIOM42MQO+QnduCoFCI0bpkzjCjddHPN/F+2Yu+sd9bKNpVwHhbS3LluK/0zgfwD0xYI5dXuzlQAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-warning.callout-style-default .callout-caption {
+    background-color: #fcefdc
+  }
+
+  div.callout-tip {
+    border-left-color: #02b875 !important;
+  }
+
+  div.callout-tip .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAADr0lEQVRYCe1XTWgTQRj9ZjZV8a9SPIkKgj8I1bMHsUWrqYLVg4Ue6v9BwZOxSYsIerFao7UiUryIqJcqgtpimhbBXoSCVxUFe9CTiogUrUp2Pt+3aUI2u5vdNh4dmMzOzHvvezuz8xNFM0mjnbXaNu1MvFWRXkXEyE6aYOYJpdW4IXuA4r0fo8qqSMDBU0v1HJUgVieAXxzCsdE/YJTdFcVIZQNMyhruOMJKXYFoLfIfIvVIMWdsrd+Rpd86ZmyzzjJmLStqRn0v8lzkb4rVIXvnpScOJuAn2ACC65FkPzEdEy4TPWRLJ2h7z4cArXzzaOdKlbOvKKX25Wl00jSnrwVxAg3o4dRxhO13RBSdNvH0xSARv3adTXbBdTf64IWO2vH0LT+cv4GR1DJt+DUItaQogeBX/chhbTBxEiZ6gftlDNXTrvT7co4ub5A6gp9HIcHvzTa46OS5fBeP87Qm0fQkr4FsYgVQ7Qg+ZayaDg9jhg1GkWj8RG6lkeSacrrHgDaxdoBiZPg+NXV/KifMuB6//JmYH4CntVEHy/keA6x4h4CU5oFy8GzrBS18cLJMXcljAKB6INjWsRcuZBWVaS3GDrqB7rdapVIeA+isQ57Eev9eCqzqOa81CY05VLd6SamW2wA2H3SiTbnbSxmzfp7WtKZkqy4mdyAlGx7ennghYf8voqp9cLSgKdqNfa6RdRsAAkPwRuJZNbpByn+RrJi1RXTwdi8RQF6ymDwGMAtZ6TVE+4uoKh+MYkcLsT0Hk8eAienbiGdjJHZTpmNjlbFJNKDVAp2fJlYju6IreQxQ08UJDNYdoLSl6AadO+fFuCQqVMB1NJwPm69T04Wv5WhfcWyfXQB+wXRs1pt+nCknRa0LVzSA/2B+a9+zQJadb7IyyV24YAxKp2Jqs3emZTuNnKxsah+uabKbMk7CbTgJx/zIgQYErIeTKRQ9yD9wxVof5YolPHqaWo7TD6tJlh7jQnK5z2n3+fGdggIOx2kaa2YI9QWarc5Ce1ipNWMKeSG4DysFF52KBmTNMmn5HqCFkwy34rDg05gDwgH3bBi+sgFhN/e8QvRn8kbamCOhgrZ9GJhFDgfcMHzFb6BAtjKpFhzTjwv1KCVuxHvCbsSiEz4CANnj84cwHdFXAbAOJ4LTSAawGWFn5tDhLMYz6nWeU2wJfIhmIJBefcd/A5FWQWGgrWzyORZ3Q6HuV+Jf0Bj+BTX69fm1zWgK7By1YTXchFDORywnfQ7GpzOo6S+qECrsx2ifVQAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-tip.callout-style-default .callout-caption {
+    background-color: #ccf1e3
+  }
+
+  div.callout-caution {
+    border-left-color: #fd7e14 !important;
+  }
+
+  div.callout-caution .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAACV0lEQVRYCdVWzWoUQRCuqp2ICBLJXgITZL1EfQDBW/bkzUMUD7klD+ATSHBEfAIfQO+iXsWDxJsHL96EHAwhgzlkg8nBg25XWb0zIb0zs9muYYWkoKeru+vn664fBqElyZNuyh167NXJ8Ut8McjbmEraKHkd7uAnAFku+VWdb3reSmRV8PKSLfZ0Gjn3a6Xlcq9YGb6tADjn+lUfTXtVmaZ1KwBIvFI11rRXlWlatwIAAv2asaa9mlB9wwygiDX26qaw1yYPzFXg2N1GgG0FMF8Oj+VIx7E/03lHx8UhvYyNZLN7BwSPgekXXLribw7w5/c8EF+DBK5idvDVYtEEwMeYefjjLAdEyQ3M9nfOkgnPTEkYU+sxMq0BxNR6jExrAI31H1rzvLEfRIdgcv1XEdj6QTQAS2wtstEALLG1yEZ3QhH6oDX7ExBSFEkFINXH98NTrme5IOaaA7kIfiu2L8A3qhH9zRbukdCqdsA98TdElyeMe5BI8Rs2xHRIsoTSSVFfCFCWGPn9XHb4cdobRIWABNf0add9jakDjQJpJ1bTXOJXnnRXHRf+dNL1ZV1MBRCXhMbaHqGI1JkKIL7+i8uffuP6wVQAzO7+qVEbF6NbS0LJureYcWXUUhH66nLR5rYmva+2tjRFtojkM2aD76HEGAD3tPtKM309FJg5j/K682ywcWJ3PASCcycH/22u+Bh7Aa0ehM2Fu4z0SAE81HF9RkB21c5bEn4Dzw+/qNOyXr3DCTQDMBOdhi4nAgiFDGCinIa2owCEChUwD8qzd03PG+qdW/4fDzjUMcE1ZpIAAAAASUVORK5CYII=');
+  }
+
+  div.callout-caution.callout-style-default .callout-caption {
+    background-color: #ffe5d0
+  }
+
+  </style>
+  <style type="text/css">
+    .reveal div.sourceCode {
+      margin: 0;
+      overflow: auto;
+    }
+    .reveal div.hanging-indent {
+      margin-left: 1em;
+      text-indent: -1em;
+    }
+    .reveal .slide:not(.center) {
+      height: 100%;
+    }
+    .reveal .slide.scrollable {
+      overflow-y: auto;
+    }
+    .reveal .footnotes {
+      height: 100%;
+      overflow-y: auto;
+    }
+    .reveal .slide .absolute {
+      position: absolute;
+      display: block;
+    }
+    .reveal .footnotes ol {
+      counter-reset: ol;
+      list-style-type: none; 
+      margin-left: 0;
+    }
+    .reveal .footnotes ol li:before {
+      counter-increment: ol;
+      content: counter(ol) ". "; 
+    }
+    .reveal .footnotes ol li > p:first-child {
+      display: inline-block;
+    }
+    .reveal .slide ul,
+    .reveal .slide ol {
+      margin-bottom: 0.5em;
+    }
+    .reveal .slide ul li,
+    .reveal .slide ol li {
+      margin-top: 0.4em;
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide ul[role="tablist"] li {
+      margin-bottom: 0;
+    }
+    .reveal .slide ul li > *:first-child,
+    .reveal .slide ol li > *:first-child {
+      margin-block-start: 0;
+    }
+    .reveal .slide ul li > *:last-child,
+    .reveal .slide ol li > *:last-child {
+      margin-block-end: 0;
+    }
+    .reveal .slide .columns:nth-child(3) {
+      margin-block-start: 0.8em;
+    }
+    .reveal blockquote {
+      box-shadow: none;
+    }
+    .reveal .tippy-content>* {
+      margin-top: 0.2em;
+      margin-bottom: 0.7em;
+    }
+    .reveal .tippy-content>*:last-child {
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide > img.stretch.quarto-figure-center,
+    .reveal .slide > img.r-stretch.quarto-figure-center {
+      display: block;
+      margin-left: auto;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-left,
+    .reveal .slide > img.r-stretch.quarto-figure-left  {
+      display: block;
+      margin-left: 0;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-right,
+    .reveal .slide > img.r-stretch.quarto-figure-right  {
+      display: block;
+      margin-left: auto;
+      margin-right: 0; 
+    }
+  </style>
+</head>
+<body class="quarto-light">
+  <div class="reveal">
+    <div class="slides">
+
+<section id="title-slide" class="quarto-title-block center">
+  <h1 class="title">An Introduction to Extreme Value Theory in R</h1>
+
+<div class="quarto-title-authors">
+<div class="quarto-title-author">
+<div class="quarto-title-author-name">
+Kate Saunders 
+</div>
+</div>
+</div>
+
+</section>
+<section id="motivation" class="slide level2">
+<h2>Motivation</h2>
+<p><br> Estimating the probability of extreme events is useful for:<br>
+<br></p>
+<ul>
+<li><p>Knowing how high to build a dam to reduce flood risk<br>
+<br></p></li>
+<li><p>Appropriately pricing insurance at given a location<br>
+<br></p></li>
+<li><p>Advising government about the risks from climate extremes <br></p></li>
+</ul>
+</section>
+<section id="today" class="slide level2">
+<h2>Today</h2>
+<ul>
+<li>Statistics of Extremes</li>
+<li>Getting climate data in R</li>
+<li>Learn how to fit extreme value distributions.<br>
+(diagnostics, model selection etc.)</li>
+<li>Learn about return periods</li>
+<li>Troubleshooting</li>
+</ul>
+</section>
+<section>
+<section id="background-stats" class="title-slide slide level1 center">
+<h1>Background stats</h1>
+
+</section>
+<section id="observations-vs-random-variables" class="slide level2">
+<h2>Observations vs Random Variables</h2>
+<div>
+<p><span class="text-color"><strong>Observations</strong></span> are things we’ve seen. <br></p>
+<ul>
+<li class="fragment">Example: rolled a six or yesterday’s temperature<br>
+</li>
+<li class="fragment">Use lower case letters to write observations <span class="math inline">\(x\)</span></li>
+</ul>
+</div>
+<div>
+<p><br> <span class="text-color"><strong>Random variables</strong></span> are things we’ve yet to see</p>
+<ul>
+<li class="fragment">Example: next roll of the dice or tomorrow’s temperature.<br>
+</li>
+<li class="fragment">Statistically: Use upper case letters to write random variables <span class="math inline">\(X\)</span>.</li>
+</ul>
+</div>
+</section>
+<section id="discrete-random-variables" class="slide level2">
+<h2>Discrete Random Variables</h2>
+<div>
+<p>Let <span class="math inline">\(X\)</span> be the random variable for a six sided dice roll then: <br></p>
+<ul>
+<li class="fragment"><p>Probability my next roll is a 4 is <span class="math inline">\(\mathbb{P}(X = 4) = 1/6\)</span></p></li>
+<li class="fragment"><p>Probability my next roll is less than a 4 is <span class="math inline">\(\mathbb{P}(X &lt; 4) = 3/6\)</span></p></li>
+<li class="fragment"><p>The <strong>probability mass function</strong> for discrete random variables is <span class="math inline">\(\mathbb{P}(X = x)\)</span>.</p></li>
+<li class="fragment"><p>The <strong>cumulative distribution function</strong> for discrete random variables <span class="math inline">\(\mathbb{P}(X \leq x)\)</span></p></li>
+</ul>
+</div>
+</section>
+<section id="discrete-random-variables-ctd." class="slide level2">
+<h2>Discrete Random Variables ctd.</h2>
+<div class="cell" data-warnings="false">
+
+</div>
+
+<img data-src="wombats_tutorial_files/figure-revealjs/unnamed-chunk-2-1.png" width="960" class="r-stretch"></section>
+<section id="continuous-random-variables" class="slide level2">
+<h2>Continuous random variables</h2>
+
+<img data-src="wombats_tutorial_files/figure-revealjs/unnamed-chunk-3-1.png" width="960" class="r-stretch"></section>
+<section id="law-of-large-numbers" class="slide level2">
+<h2>Law of Large Numbers</h2>
+
+<!-- ## Estimating the standard deviation -->
+<!-- ```{r} -->
+<!-- set.seed(1) -->
+<!-- num_samples = seq(10,500, by = 10) -->
+<!-- fun_sample_sd <- function(i){sd(rnorm(i, mean = temp_mean, sd = temp_sd))/sqrt(i-1)} -->
+<!-- sample_sd = sapply(num_samples, fun_sample_sd) -->
+<!-- ggplot(data = NULL) +  -->
+<!--   geom_point(aes(x = num_samples, y = sample_sd)) +  -->
+<!--   theme_bw() +  -->
+<!--   xlab("Number of Samples") +  -->
+<!--   ylab("Estimated Standard Deviation")  -->
+<!-- ``` -->
+<img data-src="wombats_tutorial_files/figure-revealjs/unnamed-chunk-4-1.png" width="960" class="r-stretch"></section>
+<section id="central-limit-theorem" class="slide level2">
+<h2>Central Limit Theorem</h2>
+<div>
+<ul>
+<li class="fragment"><p><span class="text-color"><strong>What is it?</strong></span>For large enough sample, the distribution of the sample mean will be approximately normal.</p></li>
+<li class="fragment"><p><span class="text-color"><strong>What do we need for this to be true:</strong></span> Continuous random variable with a finite mean and finite variance.</p></li>
+<li class="fragment"><p><span class="text-color"><strong>Why is that cool?</strong></span> No matter what the original data looks like, if you take the average of enough samples, the distribution of those averages will look like a normal distribution.</p></li>
+<li class="fragment"><p><span class="text-color"><strong>Why is that useful?</strong></span> Good for statistical inference, e.g.&nbsp;hypothesis testing, and estimating confidence intervals.</p></li>
+</ul>
+</div>
+</section></section>
+<section>
+<section id="extreme-value-theory" class="title-slide slide level1 center">
+<h1>Extreme value theory</h1>
+
+</section>
+<section id="set-up" class="slide level2">
+<h2>Set up</h2>
+<p>Consider a continuous random variable <span class="math inline">\(X\)</span></p>
+<p><br><br></p>
+<p>with distribution function <span class="math inline">\(F(x) = \mathbb{P}(X &lt; x)\)</span>.</p>
+<p><br><br></p>
+<p>For a sequence of independent and identically distributed random variables, <span class="math inline">\(X_1\)</span>, <span class="math inline">\(X_2\)</span>, <span class="math inline">\(\dots\)</span>, <span class="math inline">\(X_n\)</span> the maximum is</p>
+<p><span class="math display">\[
+M_{n} = \max \lbrace X_1, X_2, \dots X_{n} \rbrace.
+\]</span></p>
+</section>
+<section id="set-up-1" class="slide level2">
+<h2>Set up</h2>
+<p>The probability <span class="math inline">\(M_n\)</span> is less than some high quantile <span class="math inline">\(z\)</span> is</p>
+<p><span class="math display">\[ \mathbb{P}(M_{n} &lt; z) = \mathbb{P}(X_1 &lt; z, X_2 &lt; z, \dots , X_{n} &lt; z)\]</span></p>
+<p><br> Using that the random variables are independent</p>
+<p><span class="math display">\[ \mathbb{P}(M_{n} &lt; z) = \mathbb{P}(X_1 &lt; z) \times \mathbb{P}(X_2 &lt; z), \times \dots \times \mathbb{P}(X_{n} &lt; z)\]</span> <br> Using that the random variables are identically distributed</p>
+<p><span class="math display">\[ \mathbb{P}(M_{n} &lt; z) = \mathbb{P}(X &lt; z)^n = \left[ F(z) \right]^n \]</span></p>
+</section>
+<section id="set-up-2" class="slide level2">
+<h2>Set Up</h2>
+<p>But we don’t know <span class="math inline">\(F(z)\)</span></p>
+<p>We can try to estimate <span class="math inline">\(F(z)\)</span> from the data.</p>
+<p>e.g For <span class="math inline">\(m\)</span> observations:</p>
+<p><span class="math display">\[ F(z) = \mathbb{P}(X &lt; z) = \dfrac{1}{m}\sum_{i = 1}^m \left( x_i &lt; z \right). \]</span></p>
+<p>That won’t work well for extreme values of <span class="math inline">\(z\)</span>.</p>
+</section>
+<section id="set-up-3" class="slide level2">
+<h2>Set Up</h2>
+<p><br> Other problem for large <span class="math inline">\(n\)</span> values, small errors in the estimation of <span class="math inline">\(F(z)\)</span> become big errors when we estimate <span class="math inline">\(\left[F(z)\right]^n\)</span>. <br><br></p>
+<p>So how else can we estimate <span class="math inline">\(\mathbb{P}(M_n &lt; z)\)</span>?</p>
+</section>
+<section id="limiting-distributions" class="slide level2">
+<h2>Limiting Distributions</h2>
+<p>While we don’t know <span class="math inline">\(\left[F(z)\right]^n\)</span><br>
+<br></p>
+<p>We do know what the limiting distribution is - call that <span class="math inline">\(G(z)\)</span>!<br>
+<br></p>
+<p>We can estimate <span class="math inline">\(G(z)\)</span> using extreme value theory .<br>
+<br></p>
+<p>So for large enough <span class="math inline">\(n\)</span> provided the limit exists and is non-dengerate:</p>
+<p><span class="math display">\[ \mathbb{P}(M_n &lt; z) = \left[F(z)\right]^n \approx \lim_{n \rightarrow \infty} \left[F(z)\right]^n \rightarrow G(z; \mu, \sigma, \xi)\]</span></p>
+<!-- ## Extreme Value Theorem -->
+<!-- A "Central Limit Theorem" but for extremes. -->
+<!-- <span class="text-color">**What is it?**</span> For large enough sample, the distribution of the maxima will be an extreme value distribution. -->
+<!-- <span class="text-color">**What do we need for this to be true:**</span> Continuous random variable, where samples to be identically and independently distributed -->
+<!-- <span class="text-color">**Why is that cool?**</span> No matter what the original data looks like, if you take the sample maxima, the distribution of those maxima will look like a generalised extreme value distribution. -->
+<!--  \<span class="text-color"\> \*\*Why is that useful?\*\*\</span\>  -->
+<!-- Good for making statistical inferences about populations, hypothesis testing, and estimating confidence intervals AND we can now extrapolate beyond our observed data. -->
+</section>
+<section id="three-different-types" class="slide level2">
+<h2>Three different types</h2>
+<p>Depending on the data you start with you can end up with one of three non-degenerate limiting distributions: <br></p>
+<div>
+<ul>
+<li class="fragment"><p><span class="text-color">I: Weibull</span> (Bounded extremes) <br><em>e.g.&nbsp;Temperature</em></p></li>
+<li class="fragment"><p><span class="text-color">II: Gumbel</span> (Thin-tailed extremes) <br> <em>e.g.Storm Surge</em></p></li>
+<li class="fragment"><p><span class="text-color">III: Fréchet</span> (Heavy-tailed extremes) <br> <em>e.g Rainfall</em></p></li>
+</ul>
+</div>
+<p>Don’t need to know which limiting regime before you start!</p>
+</section>
+<section id="gev-distribution" class="slide level2">
+<h2>GEV Distribution</h2>
+<p>Generalised Extreme Value (GEV) Distribution <span class="citation" data-cites="coles2001">(<a href="#/references" role="doc-biblioref" onclick="">Coles 2001</a>)</span>:</p>
+<p><span class="math display">\[  G(z; \mu, \sigma, \xi) = \exp \Bigg\lbrace{ -\left[1 + \xi \left( \dfrac{z - \mu}{\sigma}\right)  \right]^{-1 / \xi}\Bigg\rbrace} \]</span></p>
+<p>Where:</p>
+<ul>
+<li><span class="math inline">\(-\infty &lt; \mu &lt; \infty\)</span> is the location parameter,<br>
+</li>
+<li><span class="math inline">\(\sigma &gt; 0\)</span> is the scale parameter,<br>
+</li>
+<li><span class="math inline">\(-\infty &lt; \xi &lt; \infty\)</span> is the shape parameter,<br>
+</li>
+<li>and <span class="math inline">\(1 + \xi \left( \frac{z - \mu}{\sigma} \right) &gt; 0\)</span></li>
+</ul>
+</section>
+<section id="gev-distribution-in-shiny" class="slide level2">
+<h2>GEV Distribution in Shiny</h2>
+<p>Shiny app time</p>
+<div class="cell">
+
+</div>
+<div class="cell">
+
+</div>
+</section>
+<section id="real-world" class="slide level2">
+<h2>Real world</h2>
+<p><span class="text-color"><strong>Problem:</strong></span><br> Climate variables like rainfall and temperature are not identically distributed.</p>
+<p><br></p>
+<div>
+<p>That’s okay. We have options.</p>
+<ul>
+<li class="fragment"><p>Stratify your data<br>
+<em>e.g.&nbsp;fit to a stationary period, fit to Summer.</em></p></li>
+<li class="fragment"><p>Alternatively you can allow your GEV parameters to vary smoothly as a function of covariates.<br>
+<em>e.g.&nbsp;let</em> <span class="math inline">\(\mu\)</span> <em>vary with the year, vary with climate change</em></p></li>
+</ul>
+</div>
+</section>
+<section id="real-world-1" class="slide level2">
+<h2>Real world</h2>
+<p><span class="text-color"><strong>Problem:</strong></span><br> Climate variables like rainfall and temperature are not independent. The weather today, has an influence on the weather tomorrow.</p>
+<p><br></p>
+<div>
+<p>That’s okay.</p>
+<ul>
+<li class="fragment"><p>We only worry if there is long-memory in the process.</p></li>
+<li class="fragment"><p>The temperature today is independent of the temperature this time next year</p></li>
+</ul>
+</div>
+</section></section>
+<section>
+<section id="getting-started-in-r" class="title-slide slide level1 center">
+<h1>Getting Started in R</h1>
+
+</section>
+<section id="packages" class="slide level2">
+<h2>Packages</h2>
+<p>Let’s install the packages we need for today:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(<span class="st">'tidyverse'</span>, <span class="at">character.only =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb1-2"><a href="#cb1-2"></a>  <span class="fu">install.packages</span>(<span class="st">'tidyverse'</span>)</span>
+<span id="cb1-3"><a href="#cb1-3"></a></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(<span class="st">'rnoaa'</span>, <span class="at">character.only =</span> <span class="cn">TRUE</span>)){</span>
+<span id="cb1-5"><a href="#cb1-5"></a>  <span class="fu">install.packages</span>(<span class="st">"devtools"</span>)</span>
+<span id="cb1-6"><a href="#cb1-6"></a>  devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"ropensci/rnoaa"</span>)</span>
+<span id="cb1-7"><a href="#cb1-7"></a>}</span>
+<span id="cb1-8"><a href="#cb1-8"></a></span>
+<span id="cb1-9"><a href="#cb1-9"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(<span class="st">'extRemes'</span>, <span class="at">character.only =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb1-10"><a href="#cb1-10"></a>  <span class="fu">install.packages</span>(<span class="st">'extRemes'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><br> Let’s load those packages into our library:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="fu">library</span>(rnoaa)</span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="fu">library</span>(extRemes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="getting-data" class="slide level2">
+<h2>Getting Data</h2>
+<p>Using the <code>rnoaa</code> R package <span class="citation" data-cites="rnoaa">(<a href="#/references" role="doc-biblioref" onclick="">Chamberlain 2021</a>)</span>, we can:</p>
+<ul>
+<li><p>Access the daily observations in the Global Historical Climate Network (GHCN)</p></li>
+<li><p>For Australia, these stations are the same as those monitored by the Bureau of Meteorology</p></li>
+<li><p>Australian stations have IDs starting with “ASN”</p></li>
+</ul>
+<div class="cell" data-hash="wombats_tutorial_cache/revealjs/rnoaa_60783a1a7334e3d632d57b0ed775fda6">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="co"># Get meta data</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a>meta_data <span class="ot">&lt;-</span> rnoaa<span class="sc">::</span><span class="fu">ghcnd_stations</span>() </span>
+<span id="cb3-3"><a href="#cb3-3"></a></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="co"># Restricts to Australian meta data</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a>aus_code <span class="ot">=</span> <span class="st">"ASN"</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a>aus_meta_data <span class="ot">&lt;-</span> meta_data <span class="sc">|&gt;</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a>    dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="fu">str_detect</span>(id, aus_code))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="search-for-a-station" class="slide level2">
+<h2>Search for a station</h2>
+<p>You are welcome to pick a station close to your home or your heart. <br></p>
+<p><strong>Conditions:</strong> Pick something with a long record (&gt;50 years) that has elements of both “TMAX” and “PRCP”.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="co"># Search for stations within a radius of a location</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a></span>
+<span id="cb4-3"><a href="#cb4-3"></a>lat_coord <span class="ot">=</span> <span class="sc">-</span><span class="fl">27.55</span>; long_coord <span class="ot">=</span> <span class="fl">152.34</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a></span>
+<span id="cb4-5"><a href="#cb4-5"></a>local_meta_data <span class="ot">&lt;-</span> aus_meta_data <span class="sc">|&gt;</span> </span>
+<span id="cb4-6"><a href="#cb4-6"></a>  <span class="fu">meteo_distance</span>(<span class="at">lat =</span> lat_coord, <span class="at">long =</span> long_coord, <span class="at">radius =</span> <span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="search-for-a-station-1" class="slide level2">
+<h2>Search for a station</h2>
+<p>May also like to look for a station by name</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="co"># Search for stations that partially match a name</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a></span>
+<span id="cb5-3"><a href="#cb5-3"></a>search_term <span class="ot">=</span> <span class="st">"UNIVERSITY"</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a></span>
+<span id="cb5-5"><a href="#cb5-5"></a>local_meta_data <span class="ot">&lt;-</span> aus_meta_data <span class="sc">|&gt;</span> </span>
+<span id="cb5-6"><a href="#cb5-6"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(stringr<span class="sc">::</span><span class="fu">str_detect</span>(name, search_term))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="meta-data" class="slide level2">
+<h2>Meta Data</h2>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 20 × 12
+   id          latitude longitude elevation state name   gsn_flag wmo_id element
+   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;    &lt;chr&gt;  &lt;chr&gt;  
+ 1 ASN00040082    -27.5      152.        97 ""    UNIVE… ""       "9456… TMAX   
+ 2 ASN00040082    -27.5      152.        97 ""    UNIVE… ""       "9456… TMIN   
+ 3 ASN00040082    -27.5      152.        97 ""    UNIVE… ""       "9456… PRCP   
+ 4 ASN00040082    -27.5      152.        97 ""    UNIVE… ""       "9456… DAPR   
+ 5 ASN00040082    -27.5      152.        97 ""    UNIVE… ""       "9456… DATN   
+ 6 ASN00040082    -27.5      152.        97 ""    UNIVE… ""       "9456… DATX   
+ 7 ASN00040082    -27.5      152.        97 ""    UNIVE… ""       "9456… DWPR   
+ 8 ASN00040082    -27.5      152.        97 ""    UNIVE… ""       "9456… MDPR   
+ 9 ASN00040082    -27.5      152.        97 ""    UNIVE… ""       "9456… MDTN   
+10 ASN00040082    -27.5      152.        97 ""    UNIVE… ""       "9456… MDTX   
+11 ASN00040436    -27.5      152.        98 ""    GATTO… ""       ""     TMAX   
+12 ASN00040436    -27.5      152.        98 ""    GATTO… ""       ""     TMIN   
+13 ASN00040436    -27.5      152.        98 ""    GATTO… ""       ""     PRCP   
+14 ASN00040436    -27.5      152.        98 ""    GATTO… ""       ""     DAPR   
+15 ASN00040436    -27.5      152.        98 ""    GATTO… ""       ""     DATN   
+16 ASN00040436    -27.5      152.        98 ""    GATTO… ""       ""     DATX   
+17 ASN00040436    -27.5      152.        98 ""    GATTO… ""       ""     DWPR   
+18 ASN00040436    -27.5      152.        98 ""    GATTO… ""       ""     MDPR   
+19 ASN00040436    -27.5      152.        98 ""    GATTO… ""       ""     MDTN   
+20 ASN00040436    -27.5      152.        98 ""    GATTO… ""       ""     MDTX   
+# ℹ 3 more variables: first_year &lt;int&gt;, last_year &lt;int&gt;, distance &lt;dbl&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="download-the-data" class="slide level2">
+<h2>Download the Data</h2>
+<p>Download the data using <code>meteo_pull_monitors</code></p>
+<p>Example using the station ID</p>
+<div class="cell" data-hash="wombats_tutorial_cache/revealjs/download1_ef7eec6e88fb1a72e21bb1d22290bfa7">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>stn_id <span class="ot">=</span> <span class="st">"ASN00040082"</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a>stn_data <span class="ot">&lt;-</span> rnoaa<span class="sc">::</span><span class="fu">meteo_pull_monitors</span>(<span class="at">monitors =</span> stn_id,</span>
+<span id="cb7-3"><a href="#cb7-3"></a>                                    <span class="at">keep_flags =</span>  <span class="cn">TRUE</span>,</span>
+<span id="cb7-4"><a href="#cb7-4"></a>                                    <span class="at">var =</span> <span class="st">"all"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>or using the station name</p>
+<div class="cell" data-hash="wombats_tutorial_cache/revealjs/download_a298c8d0afde1564b0bd62ebd367c874">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>stn_name <span class="ot">=</span> <span class="st">"UNIVERSITY OF QUEENSLAND GATTO"</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a>stn_id <span class="ot">&lt;-</span> local_meta_data <span class="sc">|&gt;</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(name <span class="sc">==</span> stn_name) <span class="sc">|&gt;</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(id) <span class="sc">|&gt;</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a>  dplyr<span class="sc">::</span><span class="fu">distinct</span>() <span class="sc">|&gt;</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a>  dplyr<span class="sc">::</span><span class="fu">pull</span>()</span>
+<span id="cb8-7"><a href="#cb8-7"></a></span>
+<span id="cb8-8"><a href="#cb8-8"></a><span class="co"># Downlaod the station ID</span></span>
+<span id="cb8-9"><a href="#cb8-9"></a>stn_data <span class="ot">&lt;-</span> rnoaa<span class="sc">::</span><span class="fu">meteo_pull_monitors</span>(<span class="at">monitors =</span> stn_id,</span>
+<span id="cb8-10"><a href="#cb8-10"></a>                                    <span class="at">keep_flags =</span>  <span class="cn">TRUE</span>,</span>
+<span id="cb8-11"><a href="#cb8-11"></a>                                    <span class="at">var =</span> <span class="st">"all"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="preprocess-the-data" class="slide level2">
+<h2>Preprocess the Data</h2>
+<p>Light touch: Just doing the basics to tidy and format the data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>stn_data_preprocessed <span class="ot">&lt;-</span> stn_data <span class="sc">|&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a>  </span>
+<span id="cb9-3"><a href="#cb9-3"></a>  <span class="co"># Ensure Year format is a date </span></span>
+<span id="cb9-4"><a href="#cb9-4"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">year =</span> lubridate<span class="sc">::</span><span class="fu">year</span>(date)) <span class="sc">|&gt;</span> </span>
+<span id="cb9-5"><a href="#cb9-5"></a>  </span>
+<span id="cb9-6"><a href="#cb9-6"></a>  <span class="co"># Select the relevant columns</span></span>
+<span id="cb9-7"><a href="#cb9-7"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(tmax, tmin, prcp, date, year) <span class="sc">|&gt;</span> </span>
+<span id="cb9-8"><a href="#cb9-8"></a>  </span>
+<span id="cb9-9"><a href="#cb9-9"></a>  <span class="co"># Pivot to a tidy long format</span></span>
+<span id="cb9-10"><a href="#cb9-10"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(tmax, tmin, prcp), <span class="at">names_to =</span> <span class="st">"element"</span>, <span class="at">values_to =</span> <span class="st">"observation"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-11"><a href="#cb9-11"></a>  </span>
+<span id="cb9-12"><a href="#cb9-12"></a>  <span class="co"># Change the unit of measurement</span></span>
+<span id="cb9-13"><a href="#cb9-13"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">observation =</span> <span class="fu">as.numeric</span>(observation)<span class="sc">/</span><span class="dv">10</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-14"><a href="#cb9-14"></a>  </span>
+<span id="cb9-15"><a href="#cb9-15"></a>  <span class="co"># Filter out NA values (temperature)</span></span>
+<span id="cb9-16"><a href="#cb9-16"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">observation =</span> <span class="fu">if_else</span>(</span>
+<span id="cb9-17"><a href="#cb9-17"></a>    observation <span class="sc">==</span> <span class="dv">99</span> <span class="sc">&amp;</span> element <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">'tmax'</span>,<span class="st">'tmin'</span>),  </span>
+<span id="cb9-18"><a href="#cb9-18"></a>    <span class="cn">NA</span>, observation))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="get-the-maxima" class="slide level2">
+<h2>Get the maxima</h2>
+<p>We want to get the highest observation each year. <br><br>
+Light touch: Restrict to years with more than 90% of the observations each year.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>stn_max <span class="ot">&lt;-</span> stn_data_preprocessed <span class="sc">|&gt;</span> </span>
+<span id="cb10-2"><a href="#cb10-2"></a>  dplyr<span class="sc">::</span><span class="fu">group_by</span>(year, element) <span class="sc">|&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(<span class="at">max =</span> <span class="fu">max</span>(observation, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb10-4"><a href="#cb10-4"></a>                   <span class="at">count =</span> <span class="fu">sum</span>(<span class="fu">as.numeric</span>(<span class="sc">!</span><span class="fu">is.na</span>(observation)))) <span class="sc">|&gt;</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb10-6"><a href="#cb10-6"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(count <span class="sc">&gt;</span> <span class="dv">365</span><span class="sc">*</span><span class="fl">0.9</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-7"><a href="#cb10-7"></a>  <span class="fu">select</span>(<span class="sc">-</span>count) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="get-the-maxima-1" class="slide level2">
+<h2>Get the maxima</h2>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 236 × 3
+    year element   max
+   &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt;
+ 1  1899 prcp     38.1
+ 2  1900 prcp     84.8
+ 3  1901 prcp    156. 
+ 4  1902 prcp     56.4
+ 5  1903 prcp     82.6
+ 6  1904 prcp     37.6
+ 7  1905 prcp     51.1
+ 8  1906 prcp     80.3
+ 9  1907 prcp     42.7
+10  1908 prcp    118. 
+# ℹ 226 more rows</code></pre>
+</div>
+</div>
+</section>
+<section id="plot-the-maxima" class="slide level2">
+<h2>Plot the Maxima</h2>
+
+<img data-src="wombats_tutorial_files/figure-revealjs/maxplot-1.png" width="1344" class="r-stretch quarto-figure-center"><ul>
+<li>Wettest Day of the year = Rx1d</li>
+<li>Hottest Day of the year for Maximum Temp = Txx</li>
+<li>Hottest Day of the year for Minimum Temp = Tnx</li>
+</ul>
+</section>
+<section id="plot-the-maxima-1" class="slide level2">
+<h2>Plot the Maxima</h2>
+<p>Code for producing the plot:</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="fu">ggplot</span>(stn_max, <span class="fu">aes</span>(<span class="at">x =</span> max)) <span class="sc">+</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a>  <span class="fu">geom_histogram</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">after_stat</span>(density))) <span class="sc">+</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a>  <span class="fu">geom_density</span>(<span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">size =</span> <span class="fl">1.5</span>) <span class="sc">+</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>element, <span class="at">scale =</span> <span class="st">"free"</span>) <span class="sc">+</span></span>
+<span id="cb12-5"><a href="#cb12-5"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span> </span>
+<span id="cb12-6"><a href="#cb12-6"></a>  <span class="fu">xlab</span>(<span class="st">"Yearly Max"</span>) <span class="sc">+</span></span>
+<span id="cb12-7"><a href="#cb12-7"></a>  <span class="fu">ylab</span>(<span class="st">"Density"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+</div>
+<img data-src="wombats_tutorial_files/figure-revealjs/maxplotcode-1.png" width="960" class="r-stretch quarto-figure-center"></section>
+<section id="tidy-the-maxima" class="slide level2">
+<h2>Tidy the maxima</h2>
+<ul>
+<li><p>Transform the data to a wide format the data for fitting</p></li>
+<li><p>Update to use the correct labels</p></li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="co"># Extract the block maxima</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a>max_df <span class="ot">=</span> stn_max <span class="sc">|&gt;</span> </span>
+<span id="cb13-3"><a href="#cb13-3"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(<span class="at">names_from =</span> element, <span class="at">values_from =</span> max) <span class="sc">|&gt;</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a>  <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb13-5"><a href="#cb13-5"></a>  <span class="fu">rename</span>(<span class="at">rx1d =</span> prcp, <span class="at">txx =</span> tmax, <span class="at">tnx =</span> tmin)</span>
+<span id="cb13-6"><a href="#cb13-6"></a></span>
+<span id="cb13-7"><a href="#cb13-7"></a>max_df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    year  rx1d  txx  tnx
+1   1899  38.1   NA   NA
+2   1900  84.8   NA   NA
+3   1901 156.2   NA   NA
+4   1902  56.4   NA   NA
+5   1903  82.6   NA   NA
+6   1904  37.6   NA   NA
+7   1905  51.1   NA   NA
+8   1906  80.3   NA   NA
+9   1907  42.7   NA   NA
+10  1908 117.9   NA   NA
+11  1909  58.7   NA   NA
+12  1910 122.9   NA   NA
+13  1911 134.6   NA   NA
+14  1912  75.4   NA   NA
+15  1913  85.1   NA   NA
+16  1914  59.2   NA   NA
+17  1915  55.1   NA   NA
+18  1916  43.7   NA   NA
+19  1917  59.4   NA   NA
+20  1918  58.4   NA   NA
+21  1919  38.6   NA   NA
+22  1920  66.5   NA   NA
+23  1921  71.1   NA   NA
+24  1922  33.0   NA   NA
+25  1923  43.4   NA   NA
+26  1924  61.7   NA   NA
+27  1925  77.0   NA   NA
+28  1926  53.1   NA   NA
+29  1927  64.8   NA   NA
+30  1928  69.9   NA   NA
+31  1929  67.6   NA   NA
+32  1930  85.3   NA   NA
+33  1931  89.9   NA   NA
+34  1932  63.0   NA   NA
+35  1933 130.8   NA   NA
+36  1934  58.2   NA   NA
+37  1935  57.2   NA   NA
+38  1936  51.6   NA   NA
+39  1937  69.1   NA   NA
+40  1938  73.4   NA   NA
+41  1939 109.2   NA   NA
+42  1940  55.4   NA   NA
+43  1941  73.9   NA   NA
+44  1942 105.4   NA   NA
+45  1943  97.0   NA   NA
+46  1944  74.7   NA   NA
+47  1945  57.2   NA   NA
+48  1946 144.8   NA   NA
+49  1947  92.5   NA   NA
+50  1948 111.5   NA   NA
+51  1949 107.2   NA   NA
+52  1950  88.9   NA   NA
+53  1951 103.9   NA   NA
+54  1952  83.6   NA   NA
+55  1953  64.0   NA   NA
+56  1954  70.4   NA   NA
+57  1955 141.5   NA   NA
+58  1956  99.6   NA   NA
+59  1957  39.1   NA   NA
+60  1958  95.0   NA   NA
+61  1959 124.7   NA   NA
+62  1960  47.8   NA   NA
+63  1961  49.5   NA   NA
+64  1962  53.3   NA   NA
+65  1963  62.2   NA   NA
+66  1964 108.2   NA   NA
+67  1965 192.3 42.2 23.9
+68  1966  55.9 41.9 25.6
+69  1967  76.2 40.3 24.4
+70  1968  75.7 42.8 25.6
+71  1969 100.6 39.4 24.4
+72  1970  79.8 35.6 22.8
+73  1971  75.2 39.2 23.3
+74  1972  55.1   NA 24.5
+75  1973 179.3 38.0 24.5
+76  1974 199.4 37.9 23.5
+77  1975  49.2 36.8 24.4
+78  1976  85.0 39.0 23.5
+79  1977  53.0 40.0 23.8
+80  1978  80.8 37.4 23.0
+81  1979  76.0 41.3 28.5
+82  1980  49.0 42.8 24.9
+83  1981  73.2 40.6 25.2
+84  1982  81.0 39.1 23.6
+85  1983  65.6 38.5 24.2
+86  1984  53.0 38.4 23.1
+87  1985  63.8 39.4 24.7
+88  1986  44.3 38.2 25.1
+89  1987  86.2 40.5 25.5
+90  1988 103.0 39.8 23.2
+91  1989  66.4 38.1 26.2
+92  1990  76.4 41.0 27.5
+93  1991 108.8 41.0 25.0
+94  1992 182.0 37.8 25.2
+95  1993  35.2 41.3 26.5
+96  1994  65.8 44.5 27.6
+97  1995  85.4 40.1 24.8
+98  1996 118.9 42.1 24.5
+99  1997  45.0 41.8 24.2
+100 1998  50.2 40.7 25.8
+101 1999 106.8 37.5 24.4
+102 2000  25.6 40.0 23.5
+103 2001  73.6 42.0 24.5
+104 2002  34.3 42.6 25.1
+105 2003  47.6 39.0 24.0
+106 2004  66.4 42.0 25.0
+107 2005  56.2 40.2 25.2
+108 2006  41.8 41.8 24.6
+109 2007  58.8 38.9 23.9
+110 2008 170.6 38.7 23.0
+111 2009  47.4 41.9 23.5
+112 2010  64.2 39.2 23.8
+113 2011  87.2 37.4 24.2
+114 2012  95.8 39.7 23.4
+115 2013 110.0 41.5 23.9
+116 2014 101.0 44.2 24.8
+117 2015  72.2 38.7 24.1
+118 2016  36.8 39.8 24.4
+119 2017  62.0 45.7 27.3
+120 2018  80.0 41.9 23.8
+121 2019  22.4 43.4 25.0
+122 2020  33.6 43.5 24.7
+123 2021  89.4 40.4 24.3</code></pre>
+</div>
+</div>
+</section>
+<section id="your-turn" class="slide level2">
+<h2>Your turn</h2>
+<div class="callout callout-tip callout-captioned callout-style-default">
+<div class="callout-body">
+<div class="callout-caption">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Practice Time</strong></p>
+</div>
+<div class="callout-content">
+<ul>
+<li><p>Take some time now to explore the basic functions in <code>rnoaa</code></p></li>
+<li><p>Either use my code to download some station data</p></li>
+<li><p>Or search for a station of interest to you and download that data</p></li>
+<li><p>Once you have your data, create a plot to check your maxima</p></li>
+<li><p>Also format your data to be ready for model fitting</p></li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<section id="backups" class="slide level2">
+<h2>Backups</h2>
+<p>If its helpful you can also directly read in the files I’ve just used</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="co"># Be sure to set your working directory first</span></span>
+<span id="cb15-2"><a href="#cb15-2"></a></span>
+<span id="cb15-3"><a href="#cb15-3"></a>aus_meta_data <span class="ot">=</span> <span class="fu">read_csv</span>(<span class="st">"data/aus_meta_data.csv"</span>)</span>
+<span id="cb15-4"><a href="#cb15-4"></a></span>
+<span id="cb15-5"><a href="#cb15-5"></a>stn_data <span class="ot">=</span> <span class="fu">read_csv</span>(<span class="st">"data/UoQGatton_data.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section></section>
+<section>
+<section id="fitting-a-gev" class="title-slide slide level1 center">
+<h1>Fitting a GEV</h1>
+<p>Covering the basics</p>
+</section>
+<section id="fitting" class="slide level2">
+<h2>Fitting</h2>
+<ul>
+<li><p>Practice using the precipitation maxima</p></li>
+<li><p>Fit a stationary GEV, so constant parameters</p></li>
+<li><p><span class="math inline">\(\mu = \mu_0\)</span>, <span class="math inline">\(\sigma = \sigma_0\)</span> and <span class="math inline">\(\xi = \xi_0\)</span>.</p></li>
+<li><p>Using the R package extRemes <span class="citation" data-cites="extRemes-2">(<a href="#/references" role="doc-biblioref" onclick="">Gilleland and Katz 2016</a>)</span></p></li>
+</ul>
+<p><em>Option 1:</em> Pass our data in as a vector</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="co"># Extract the block maxima</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a>rx1d <span class="ot">=</span> max_df<span class="sc">$</span>rx1d</span>
+<span id="cb16-3"><a href="#cb16-3"></a></span>
+<span id="cb16-4"><a href="#cb16-4"></a><span class="co"># Fit the model</span></span>
+<span id="cb16-5"><a href="#cb16-5"></a>rx1d_gev_fit_vec <span class="ot">=</span> extRemes<span class="sc">::</span><span class="fu">fevd</span>(<span class="at">x =</span> rx1d, <span class="at">type =</span> <span class="st">"GEV"</span>)</span>
+<span id="cb16-6"><a href="#cb16-6"></a></span>
+<span id="cb16-7"><a href="#cb16-7"></a><span class="co"># Look at the parameters</span></span>
+<span id="cb16-8"><a href="#cb16-8"></a>rx1d_gev_fit_vec<span class="sc">$</span>results<span class="sc">$</span>par <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>location    scale    shape 
+   61.65    24.07     0.08 </code></pre>
+</div>
+</div>
+<p><br> Sanity check: Do the parameters look reasonable?</p>
+</section>
+<section id="fitting-1" class="slide level2">
+<h2>Fitting</h2>
+<p><em>Option 2:</em> Pass our data in as a data frame</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>fitting_data <span class="ot">=</span> max_df <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">select</span>(year, rx1d) </span>
+<span id="cb18-2"><a href="#cb18-2"></a></span>
+<span id="cb18-3"><a href="#cb18-3"></a><span class="co"># Fit the model</span></span>
+<span id="cb18-4"><a href="#cb18-4"></a>rx1d_gev_fit <span class="ot">=</span> <span class="fu">fevd</span>(<span class="at">x =</span> rx1d, <span class="at">data =</span> fitting_data, <span class="at">type =</span> <span class="st">"GEV"</span>)</span>
+<span id="cb18-5"><a href="#cb18-5"></a></span>
+<span id="cb18-6"><a href="#cb18-6"></a><span class="co"># Look at the parameters</span></span>
+<span id="cb18-7"><a href="#cb18-7"></a>rx1d_gev_fit<span class="sc">$</span>results<span class="sc">$</span>par <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>location    scale    shape 
+   61.65    24.07     0.08 </code></pre>
+</div>
+</div>
+<p><br> Sanity check: Do the parameters look reasonable?</p>
+<p><br> Note you don’t need to preselect your columns, I chose to to this to avoid dealing with NAs more directly.</p>
+</section>
+<section id="model-fitting-summary" class="slide level2">
+<h2>Model fitting summary</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a>rx1d_gev_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+fevd(x = rx1d, data = fitting_data, type = "GEV")
+
+[1] "Estimation Method used: MLE"
+
+
+ Negative Log-Likelihood Value:  591.3038 
+
+
+ Estimated parameters:
+   location       scale       shape 
+61.65492561 24.07477131  0.08270394 
+
+ Standard Error Estimates:
+  location      scale      shape 
+2.44512881 1.82634935 0.06807762 
+
+ Estimated parameter covariance matrix.
+            location       scale        shape
+location  5.97865488  2.06057137 -0.054847717
+scale     2.06057137  3.33555196 -0.022519479
+shape    -0.05484772 -0.02251948  0.004634563
+
+ AIC = 1188.608 
+
+ BIC = 1197.044 </code></pre>
+</div>
+</div>
+</section>
+<section id="diagnostic-plot" class="slide level2">
+<h2>Diagnostic plot</h2>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a><span class="fu">plot</span>(rx1d_gev_fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+</div>
+<img data-src="wombats_tutorial_files/figure-revealjs/unnamed-chunk-9-1.png" width="816" class="r-stretch quarto-figure-center"></section>
+<section id="return-periods-and-return-levels" class="slide level2">
+<h2>Return periods and return levels</h2>
+<p>We want to know the level that is exceeded on average 1 in every <span class="math inline">\(100\)</span> years:</p>
+<p><span class="math display">\[\mathbb{P}(M_n &lt; z_{100}) \approx G(z_{100}) = \dfrac{1}{100}. \]</span></p>
+<p>Here we need to solve for <span class="math inline">\(z_{100}\)</span>. This is what is known as the 1 in <span class="math inline">\(100\)</span> year return level.</p>
+<p><br> <em>In generality:</em> The return level <span class="math inline">\(z_{p}\)</span> associated with a return period <span class="math inline">\(p\)</span> is: <span class="math display">\[\mathbb{P}(M_n &lt; z_{p}) \approx G(z_{p}) = \dfrac{1}{p}. \]</span></p>
+</section>
+<section id="return-periods-and-return-levels-1" class="slide level2">
+<h2>Return periods and return levels</h2>
+<p><em>Approach 1:</em> Can use the quantile function</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a>pars <span class="ot">=</span> rx1d_gev_fit<span class="sc">$</span>results<span class="sc">$</span>par</span>
+<span id="cb23-2"><a href="#cb23-2"></a>rl100 <span class="ot">=</span> <span class="fu">qevd</span>(<span class="at">p =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">100</span>, <span class="at">loc =</span> pars[<span class="dv">1</span>], <span class="at">scale =</span> pars[<span class="dv">2</span>], <span class="at">shape =</span> pars[<span class="dv">3</span>], <span class="at">lower.tail =</span> <span class="cn">FALSE</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>A 1 in <span class="math inline">\(100\)</span> year event at this station is 196 mm. <br></p>
+<p>But … <br></p>
+<p>That doesn’t give CIs.</p>
+</section>
+<section id="return-periods-and-return-levels-2" class="slide level2">
+<h2>Return periods and return levels</h2>
+<p><em>Approach 2:</em> There is an inbuilt to estimate return levels from your fitted model with CIs</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a><span class="fu">return.level</span>(rx1d_gev_fit, <span class="at">return.period =</span> <span class="dv">100</span>, <span class="at">do.ci =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>fevd(x = rx1d, data = fitting_data, type = "GEV")
+
+[1] "Normal Approx."
+
+[1] "100-year return level: 196.416"
+
+[1] "95% Confidence Interval: (151.8207, 241.011)"</code></pre>
+</div>
+</div>
+</section>
+<section id="annual-exceedance-probabilities" class="slide level2">
+<h2>Annual Exceedance Probabilities</h2>
+<p>“1 in 100s” can be confusing.</p>
+<div>
+<ul>
+<li class="fragment"><p>It isn’t an event that happens exactly once ever 100 years.</p></li>
+<li class="fragment"><p>It doesn’t mean we can’t have two 1 in 100 year events in a row.</p></li>
+<li class="fragment"><p>It makes no sense in a non-stationary climate</p></li>
+<li class="fragment"><p>Now say the event with an Annual Exceedance Probability (AEP) of 0.01 instead</p></li>
+</ul>
+</div>
+</section>
+<section id="return-periods-and-return-levels-3" class="slide level2">
+<h2>Return periods and return levels</h2>
+<p>Estimating a multiple return levels using your model:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a>return_periods <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">500</span>)</span>
+<span id="cb26-2"><a href="#cb26-2"></a></span>
+<span id="cb26-3"><a href="#cb26-3"></a>return_levels <span class="ot">=</span> <span class="fu">return.level</span>(rx1d_gev_fit, <span class="at">return.period =</span> return_periods, <span class="at">do.ci =</span> <span class="cn">TRUE</span>)[,<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>] <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()</span>
+<span id="cb26-4"><a href="#cb26-4"></a></span>
+<span id="cb26-5"><a href="#cb26-5"></a><span class="fu">names</span>(return_levels) <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"lower"</span>, <span class="st">"estimate"</span>, <span class="st">"upper"</span>)</span>
+<span id="cb26-6"><a href="#cb26-6"></a>return_levels<span class="sc">$</span>return_periods <span class="ot">=</span> return_periods</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="plot-return-periods-and-return-levels" class="slide level2">
+<h2>Plot return periods and return levels</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a><span class="co"># Get the 1 in 100 year return level</span></span>
+<span id="cb27-2"><a href="#cb27-2"></a>rl100 <span class="ot">=</span> return_levels <span class="sc">|&gt;</span></span>
+<span id="cb27-3"><a href="#cb27-3"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(return_periods <span class="sc">==</span> <span class="dv">100</span>) <span class="sc">|&gt;</span></span>
+<span id="cb27-4"><a href="#cb27-4"></a>  dplyr<span class="sc">::</span><span class="fu">pull</span>(estimate)</span>
+<span id="cb27-5"><a href="#cb27-5"></a></span>
+<span id="cb27-6"><a href="#cb27-6"></a></span>
+<span id="cb27-7"><a href="#cb27-7"></a><span class="co"># Plot the return periods</span></span>
+<span id="cb27-8"><a href="#cb27-8"></a>return_period_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb27-9"><a href="#cb27-9"></a>  <span class="fu">geom_ribbon</span>(<span class="at">data =</span> return_levels, <span class="fu">aes</span>(<span class="at">x =</span> return_periods, <span class="at">ymin =</span> lower, <span class="at">ymax =</span> upper), <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">fill =</span> <span class="st">"blue"</span>) <span class="sc">+</span> </span>
+<span id="cb27-10"><a href="#cb27-10"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> return_levels, <span class="fu">aes</span>(<span class="at">x =</span> return_periods, <span class="at">y =</span> estimate)) <span class="sc">+</span> </span>
+<span id="cb27-11"><a href="#cb27-11"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> <span class="cn">NULL</span>, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">100</span>, <span class="dv">100</span>), <span class="at">y =</span> <span class="fu">c</span>(rl100, rl100,<span class="dv">0</span>)), <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb27-12"><a href="#cb27-12"></a>  <span class="fu">scale_x_log10</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">10</span>,<span class="dv">20</span>,<span class="dv">50</span>,<span class="dv">100</span>,<span class="dv">250</span>,<span class="dv">500</span>)) <span class="sc">+</span></span>
+<span id="cb27-13"><a href="#cb27-13"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span> </span>
+<span id="cb27-14"><a href="#cb27-14"></a>  <span class="fu">xlab</span>(<span class="st">'Return Period'</span>) <span class="sc">+</span> </span>
+<span id="cb27-15"><a href="#cb27-15"></a>  <span class="fu">ylab</span>(<span class="st">'Return Level (mm)'</span>) <span class="sc">+</span> </span>
+<span id="cb27-16"><a href="#cb27-16"></a>  <span class="fu">ggtitle</span>(<span class="fu">paste</span>(<span class="st">"Extreme Rainfall at"</span>, stn_id))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="plot-return-periods-and-return-levels-1" class="slide level2">
+<h2>Plot return periods and return levels</h2>
+
+<img data-src="wombats_tutorial_files/figure-revealjs/returnplot-1.png" width="960" class="r-stretch"></section>
+<section id="your-turn-1" class="slide level2">
+<h2>Your turn</h2>
+<p><br></p>
+<div class="callout callout-tip callout-captioned callout-style-default">
+<div class="callout-body">
+<div class="callout-caption">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Practice Time</strong></p>
+</div>
+<div class="callout-content">
+<ul>
+<li><p>Fit a stationary GEV to your data</p></li>
+<li><p>Start with Rx1d (Rainfall)</p></li>
+<li><p>Look at your parameters and diagnostic plots</p></li>
+<li><p>Produce a plot of the return level</p></li>
+<li><p>Extra: Add your data points to the plot (use empirical quantiles).</p></li>
+<li><p>Skip ahead: Try fitting other variables</p></li>
+<li><p>Extension: Recreate some of the other diagnostic plots</p></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="cell">
+
+</div>
+</section></section>
+<section>
+<section id="fitting-a-gev-1" class="title-slide slide level1 center">
+<h1>Fitting a GEV</h1>
+<p>Non-stationarity and Model Selection</p>
+</section>
+<section id="block-maxima-data-tmax" class="slide level2">
+<h2>Block Maxima data (Tmax)</h2>
+<p>Prepare our data:</p>
+<ul>
+<li>Want a variable for year that is more intuitive</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1"></a>fitting_data <span class="ot">=</span> max_df <span class="sc">|&gt;</span> </span>
+<span id="cb28-2"><a href="#cb28-2"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(year, txx) <span class="sc">|&gt;</span></span>
+<span id="cb28-3"><a href="#cb28-3"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(txx)) <span class="sc">|&gt;</span></span>
+<span id="cb28-4"><a href="#cb28-4"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">year_transform =</span> year <span class="sc">-</span> <span class="dv">2024</span>)</span>
+<span id="cb28-5"><a href="#cb28-5"></a></span>
+<span id="cb28-6"><a href="#cb28-6"></a>fitting_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   year  txx year_transform
+1  1965 42.2            -59
+2  1966 41.9            -58
+3  1967 40.3            -57
+4  1968 42.8            -56
+5  1969 39.4            -55
+6  1970 35.6            -54
+7  1971 39.2            -53
+8  1973 38.0            -51
+9  1974 37.9            -50
+10 1975 36.8            -49
+11 1976 39.0            -48
+12 1977 40.0            -47
+13 1978 37.4            -46
+14 1979 41.3            -45
+15 1980 42.8            -44
+16 1981 40.6            -43
+17 1982 39.1            -42
+18 1983 38.5            -41
+19 1984 38.4            -40
+20 1985 39.4            -39
+21 1986 38.2            -38
+22 1987 40.5            -37
+23 1988 39.8            -36
+24 1989 38.1            -35
+25 1990 41.0            -34
+26 1991 41.0            -33
+27 1992 37.8            -32
+28 1993 41.3            -31
+29 1994 44.5            -30
+30 1995 40.1            -29
+31 1996 42.1            -28
+32 1997 41.8            -27
+33 1998 40.7            -26
+34 1999 37.5            -25
+35 2000 40.0            -24
+36 2001 42.0            -23
+37 2002 42.6            -22
+38 2003 39.0            -21
+39 2004 42.0            -20
+40 2005 40.2            -19
+41 2006 41.8            -18
+42 2007 38.9            -17
+43 2008 38.7            -16
+44 2009 41.9            -15
+45 2010 39.2            -14
+46 2011 37.4            -13
+47 2012 39.7            -12
+48 2013 41.5            -11
+49 2014 44.2            -10
+50 2015 38.7             -9
+51 2016 39.8             -8
+52 2017 45.7             -7
+53 2018 41.9             -6
+54 2019 43.4             -5
+55 2020 43.5             -4
+56 2021 40.4             -3</code></pre>
+</div>
+</div>
+</section>
+<section id="stationary-gev" class="slide level2">
+<h2>Stationary GEV</h2>
+<p><strong>Stationary Model:</strong><br> <span class="math inline">\(\mu = \mu_0\)</span>, <span class="math inline">\(\sigma = \sigma_0\)</span> and <span class="math inline">\(\xi = \xi_0\)</span>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1"></a>txx_gev_fit0 <span class="ot">=</span> <span class="fu">fevd</span>(<span class="at">x =</span> txx, <span class="at">data =</span> fitting_data, <span class="at">type =</span> <span class="st">"GEV"</span>)</span>
+<span id="cb30-2"><a href="#cb30-2"></a>txx_gev_fit0<span class="sc">$</span>results<span class="sc">$</span>par <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>location    scale    shape 
+   39.52     1.96    -0.21 </code></pre>
+</div>
+</div>
+</section>
+<section id="non-stationary-gev" class="slide level2">
+<h2>Non-stationary GEV</h2>
+<p><br> <strong>Non-stationary model:</strong> Linear shift in <span class="math inline">\(\mu\)</span>. <br> <span class="math inline">\(\mu = \mu_0 + \mu_1 (\text{year} - 2024)\)</span> <br> <span class="math inline">\(\sigma = \sigma_0\)</span> <br> <span class="math inline">\(xi = \xi_0\)</span></p>
+<p><br> <strong>Code:</strong> <code>location = ~year_transform</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1"></a>txx_gev_fit1 <span class="ot">=</span> <span class="fu">fevd</span>(<span class="at">x =</span> txx, <span class="at">data =</span> fitting_data, <span class="at">type =</span> <span class="st">"GEV"</span>, <span class="at">location =</span> <span class="sc">~</span> year_transform)</span>
+<span id="cb32-2"><a href="#cb32-2"></a>txx_gev_fit1<span class="sc">$</span>results<span class="sc">$</span>par <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  mu0   mu1 scale shape 
+40.82  0.04  1.85 -0.22 </code></pre>
+</div>
+</div>
+</section>
+<section id="fitting-a-gev-ctd." class="slide level2">
+<h2>Fitting a GEV ctd.</h2>
+<p><strong>Non-stationary model:</strong> Linear shift in location and scale: <br> <span class="math inline">\(\mu = \mu_0 + \mu_1(\text{year} - 2024)\)</span> <br> <span class="math inline">\(\sigma = \sigma_0 + \sigma_1(\text{year} - \text{start year})\)</span> <br> <span class="math inline">\(\xi = \xi_0\)</span></p>
+<p><br> <strong>Code:</strong> <br> <code>location = ~year_transform</code> <br> <code>scale = ~year_transform</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1"></a>txx_gev_fit2 <span class="ot">=</span> <span class="fu">fevd</span>(<span class="at">x =</span> txx, <span class="at">data =</span> fitting_data, <span class="at">type =</span> <span class="st">"GEV"</span>, <span class="at">location =</span> <span class="sc">~</span>year_transform, <span class="at">scale =</span> <span class="sc">~</span>year_transform)</span>
+<span id="cb34-2"><a href="#cb34-2"></a>txx_gev_fit2<span class="sc">$</span>results<span class="sc">$</span>par <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">7</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       mu0        mu1     sigma0     sigma1      shape 
+40.8235561  0.0410582  1.8531916  0.0000100 -0.2182206 </code></pre>
+</div>
+</div>
+<!-- ## Fitting a GEV ctd. -->
+<!-- Linear shift in location and step jump in scale:  -->
+<!-- <br> -->
+<!-- <br> **Non-stationary model:** <br>  -->
+<!-- $\mu = \mu_0 + \mu_1(\text{year} - 2024)$ <br>  -->
+<!-- $\sigma = \sigma_0 + \sigma_1 \cdot \mathbb{I}(\text{year} > 1960 )$ <br> -->
+<!-- $\xi = \xi_0$ -->
+<!-- ```{r echo = TRUE} -->
+<!-- fitting_data = fitting_data |> mutate(late = year - 1960) -->
+<!-- txx_gev_fit3 = fevd(x = txx, data = fitting_data, type = "GEV", location = ~year_transform, scale = ~ late) -->
+<!-- txx_gev_fit3$results$par |> round(2) -->
+<!-- ``` -->
+</section>
+<section id="model-selection" class="slide level2">
+<h2>Model Selection</h2>
+<p>Which model is better?</p>
+<p>For <strong>nested models</strong> best to use the log-likelihood ratio test.</p>
+<p>Nested means the parameter function for the larger model can be written as subset of the smaller model.</p>
+<p>For non-nested models use an Information Criteria AIC/BIC - smaller is better.</p>
+</section>
+<section id="model-selection-1" class="slide level2">
+<h2>Model Selection</h2>
+<p>Model with a linear shift is best</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1"></a><span class="co">#Stationary vs Linear shift in mu </span></span>
+<span id="cb36-2"><a href="#cb36-2"></a><span class="fu">lr.test</span>(txx_gev_fit0, txx_gev_fit1)[<span class="dv">4</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$p.value
+Likelihood-ratio 
+       0.0107668 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1"></a><span class="co">#Stationary vs Linear shift in mu and in sigma </span></span>
+<span id="cb38-2"><a href="#cb38-2"></a><span class="fu">lr.test</span>(txx_gev_fit0, txx_gev_fit2)[<span class="dv">4</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$p.value
+Likelihood-ratio 
+      0.03870819 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1"></a><span class="co">#Linear shift in mu vs Linear shift in mu and in sigma</span></span>
+<span id="cb40-2"><a href="#cb40-2"></a><span class="fu">lr.test</span>(txx_gev_fit1, txx_gev_fit2)[<span class="dv">4</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$p.value
+Likelihood-ratio 
+       0.9990509 </code></pre>
+</div>
+</div>
+</section>
+<section id="check-diagnostics" class="slide level2">
+<h2>Check diagnostics</h2>
+<p>Remember to look at the model you pick!</p>
+
+<img data-src="wombats_tutorial_files/figure-revealjs/unnamed-chunk-18-1.png" width="960" class="r-stretch"></section>
+<section id="your-turn-2" class="slide level2">
+<h2>Your turn</h2>
+<p><br></p>
+<div class="callout callout-tip callout-captioned callout-style-default">
+<div class="callout-body">
+<div class="callout-caption">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Practice Time</strong></p>
+</div>
+<div class="callout-content">
+<ul>
+<li><p>Fit a non-stationary GEV to your data</p></li>
+<li><p>Start with txx (Maximum Temp)</p></li>
+<li><p>Look at your parameters and diagnostic plots</p></li>
+<li><p>Determine if climate change has a significant linear influence on extremes</p></li>
+<li><p>You may also like to fit a GEV to tnx or rx1d</p></li>
+<li><p>Extension: Try other functional forms to smoothly vary your covariates, suggestions include an indicator function or ENSO covariate.</p></li>
+</ul>
+</div>
+</div>
+</div>
+</section></section>
+<section>
+<section id="return-levels-under-non-stationartiy" class="title-slide slide level1 center">
+<h1>Return Levels Under Non-stationartiy</h1>
+
+</section>
+<section id="conditional-return-revels" class="slide level2">
+<h2>Conditional return revels</h2>
+<p>Can estimate the return level conditional on a given year.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1"></a>return_periods <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">1000</span>)</span>
+<span id="cb42-2"><a href="#cb42-2"></a></span>
+<span id="cb42-3"><a href="#cb42-3"></a>pars <span class="ot">=</span> txx_gev_fit1<span class="sc">$</span>results<span class="sc">$</span>par</span>
+<span id="cb42-4"><a href="#cb42-4"></a></span>
+<span id="cb42-5"><a href="#cb42-5"></a>mu0 <span class="ot">=</span> pars[<span class="dv">1</span>] </span>
+<span id="cb42-6"><a href="#cb42-6"></a>mu1 <span class="ot">=</span> pars[<span class="dv">2</span>]</span>
+<span id="cb42-7"><a href="#cb42-7"></a>scale <span class="ot">=</span> pars[<span class="dv">3</span>]</span>
+<span id="cb42-8"><a href="#cb42-8"></a>shape <span class="ot">=</span> pars[<span class="dv">4</span>]</span>
+<span id="cb42-9"><a href="#cb42-9"></a></span>
+<span id="cb42-10"><a href="#cb42-10"></a>get_cond_mu <span class="ot">&lt;-</span> <span class="cf">function</span>(conditional_year, mu0, mu1){</span>
+<span id="cb42-11"><a href="#cb42-11"></a>  mu <span class="ot">=</span> mu0 <span class="sc">+</span> mu1<span class="sc">*</span>(conditional_year <span class="sc">-</span> <span class="dv">2024</span>)</span>
+<span id="cb42-12"><a href="#cb42-12"></a>  <span class="fu">return</span>(mu)</span>
+<span id="cb42-13"><a href="#cb42-13"></a>} </span>
+<span id="cb42-14"><a href="#cb42-14"></a></span>
+<span id="cb42-15"><a href="#cb42-15"></a></span>
+<span id="cb42-16"><a href="#cb42-16"></a>rls_cond2024 <span class="ot">=</span> <span class="fu">qevd</span>(<span class="dv">1</span><span class="sc">/</span>return_periods, <span class="at">loc =</span> <span class="fu">get_cond_mu</span>(<span class="dv">2024</span>, mu0, mu1), <span class="at">scale =</span> scale, <span class="at">shape =</span> shape, <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb42-17"><a href="#cb42-17"></a></span>
+<span id="cb42-18"><a href="#cb42-18"></a>rls_cond1924 <span class="ot">=</span> <span class="fu">qevd</span>(<span class="dv">1</span><span class="sc">/</span>return_periods, <span class="at">loc =</span> <span class="fu">get_cond_mu</span>(<span class="dv">1924</span>, mu0, mu1), <span class="at">scale =</span> scale, <span class="at">shape =</span> shape, <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb42-19"><a href="#cb42-19"></a></span>
+<span id="cb42-20"><a href="#cb42-20"></a>cond_rp <span class="ot">=</span> <span class="fu">data.frame</span>(return_periods, rls_cond2024, rls_cond1924) <span class="sc">|&gt;</span> </span>
+<span id="cb42-21"><a href="#cb42-21"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">names_to =</span> <span class="st">"cond"</span>, <span class="at">values_to =</span> <span class="st">"rl"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="plotting-conditional-return-periods" class="slide level2">
+<h2>Plotting conditional return periods</h2>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1"></a>cond_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(cond_rp) <span class="sc">+</span></span>
+<span id="cb43-2"><a href="#cb43-2"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">x =</span> return_periods, <span class="at">y =</span> rl, <span class="at">group =</span> cond, <span class="at">col =</span> cond)) <span class="sc">+</span> </span>
+<span id="cb43-3"><a href="#cb43-3"></a>  <span class="fu">scale_x_log10</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">10</span>,<span class="dv">20</span>,<span class="dv">50</span>,<span class="dv">100</span>,<span class="dv">250</span>,<span class="dv">500</span>)) <span class="sc">+</span></span>
+<span id="cb43-4"><a href="#cb43-4"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span> </span>
+<span id="cb43-5"><a href="#cb43-5"></a>  <span class="fu">ylab</span>(<span class="st">"Return Level"</span>) <span class="sc">+</span> </span>
+<span id="cb43-6"><a href="#cb43-6"></a>  <span class="fu">xlab</span>(<span class="st">"Return Period"</span>) <span class="sc">+</span></span>
+<span id="cb43-7"><a href="#cb43-7"></a>  <span class="fu">scale_color_manual</span>(<span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"1924"</span>, <span class="st">"2024"</span>), <span class="at">values =</span> <span class="fu">c</span>(<span class="st">"rls_cond2024"</span> <span class="ot">=</span> <span class="st">"red"</span>, <span class="st">"rls_cond1924"</span> <span class="ot">=</span> <span class="st">"blue"</span>)) <span class="sc">+</span>  <span class="fu">xlim</span>(<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">150</span>))</span>
+<span id="cb43-8"><a href="#cb43-8"></a></span>
+<span id="cb43-9"><a href="#cb43-9"></a>cond_plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+</div>
+<img data-src="wombats_tutorial_files/figure-revealjs/unnamed-chunk-20-1.png" width="960" class="r-stretch quarto-figure-center"></section>
+<section id="plotting-conditional-return-periods-1" class="slide level2">
+<h2>Plotting conditional return periods</h2>
+
+<!-- ## Data points  -->
+<!-- ```{r} -->
+<!-- fitting_data$mu = get_cond_mu(fitting_data$year, mu0, mu1) -->
+<!-- fitting_data$cprob = NA -->
+<!-- for(i in 1:nrow(fitting_data)){ -->
+<!--   fitting_data$cprob[i] = pevd(fitting_data$txx[i], fitting_data$mu[i], scale, shape) -->
+<!-- } -->
+<!-- rl_1924 = qevd(fitting_data$cprob, loc = get_cond_mu(1924, mu0, mu1), scale = scale, shape = shape) -->
+<!-- rl_2024 = qevd(fitting_data$cprob, loc = get_cond_mu(2024, mu0, mu1), scale = scale, shape = shape) -->
+<!-- <!-- ``` -->
+<!-- ## Data transformations 1 -->
+<!-- *Step 1:* transform the data to a standard marginal form, $Z \approx GEV(0,1,0)$ -->
+<!-- <br> Use `trans` in built. -->
+<!-- ```{r echo = TRUE} -->
+<!-- gumbel_data = trans(txx_gev_fit1) -->
+<!-- ``` -->
+<!-- <br> Note $Z \approx GEV(1,1,1)$ is also a common transform for univariate GEV marginals. -->
+<!-- ## Data transformations 2 -->
+<!-- *Step 2:* Transform the data to the conditional distribution. -->
+<!-- <br> -->
+<!-- Use the `revtrans.evd` -->
+<!-- <br> -->
+<!-- For 2024: -->
+<!-- ```{r echo = TRUE} -->
+<!-- cond_year = 2024 -->
+<!-- transformed_obs_2024 = revtrans.evd(gumbel_data, loc = get_cond_mu(cond_year, mu0, mu1), scale = scale, shape = shape) -->
+<!-- ``` -->
+<!-- ## Data transformations 3 -->
+<!-- *Step 3:* Find the probability of those events from the fitted model. -->
+<!-- ```{r echo = TRUE} -->
+<!-- cprob_obs_2024 = pevd(transformed_obs_2024, loc = get_cond_mu(2024, mu0, mu1), scale = scale, shape = shape) -->
+<!-- ``` -->
+<!-- Now we have everything we need to add these points to the plot based conditional on the year. -->
+<!-- ## Rinse and repeat -->
+<!-- Repeat for 1924. -->
+<!-- ```{r echo = TRUE} -->
+<!-- cond_year = 1924   -->
+<!-- transformed_obs_1924 = revtrans.evd(gumbel_data, loc = get_cond_mu(cond_year, mu0, mu1), scale = scale, shape = shape) -->
+<!-- cprob_obs_1924 = pevd(transformed_obs_1924, loc = get_cond_mu(cond_year, mu0, mu1), scale = scale, shape = shape) -->
+<!-- ``` -->
+<!-- Combine into the data frame for plotting. -->
+<!-- ```{r echo = TRUE} -->
+<!-- fitting_data$yr2024 = transformed_obs_2024 -->
+<!-- fitting_data$prob2024 = cprob_obs_2024 -->
+<!-- fitting_data$yr1924 = transformed_obs_1924 -->
+<!-- fitting_data$prob1924 = cprob_obs_1924 -->
+<!-- ``` -->
+<!-- ## Plot Conditional Return Levels -->
+<!-- ```{r, fig.align='center'} -->
+<!-- ggplot() + -->
+<!--   geom_line(data = cond_rp, aes(x = return_periods, y = rl, group = cond, col = cond)) + -->
+<!--   geom_point(data = fitting_data, aes(x = 1/(1 - cprob_obs_2024), y = transformed_obs_2024), col = "red") + -->
+<!--    geom_point(data = fitting_data, aes(x = 1/(1 - cprob_obs_1924), y = transformed_obs_1924), col = "blue") + -->
+<!--   scale_x_log10(breaks = c(2,5,10,20,50,100,250,500)) + -->
+<!--   theme_bw() +  -->
+<!--   ylab("Return Level") +  -->
+<!--   xlab("Return Period") + -->
+<!--   scale_color_manual(labels = c("1924", "2024"), values = c("rls_cond2024" = "red", "rls_cond1924" = "blue")) +  -->
+<!--   xlim(c(0,150)) -->
+<!-- ``` -->
+<img data-src="wombats_tutorial_files/figure-revealjs/unnamed-chunk-21-1.png" width="960" class="r-stretch quarto-figure-center"></section>
+<section id="your-turn-3" class="slide level2">
+<h2>Your turn</h2>
+<p><br><br></p>
+<div class="callout callout-tip callout-captioned callout-style-default">
+<div class="callout-body">
+<div class="callout-caption">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Practice Time</strong></p>
+</div>
+<div class="callout-content">
+<ul>
+<li><p>Produce a plot of the conditional return levels</p></li>
+<li><p>Extension: Use bootstrapping to simulate data and estimate CIs for your conditional return levels</p></li>
+</ul>
+</div>
+</div>
+</div>
+</section></section>
+<section>
+<section id="tips-and-tricks" class="title-slide slide level1 center">
+<h1>Tips and tricks</h1>
+
+</section>
+<section id="default" class="slide level2">
+<h2>Default</h2>
+<p><br></p>
+<p>Default optimiser: Maximum Likelihood</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb44-2"><a href="#cb44-2"></a>timeA <span class="ot">=</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb44-3"><a href="#cb44-3"></a>example_gev_fit_mle <span class="ot">=</span> <span class="fu">fevd</span>(<span class="at">x =</span> <span class="fu">revd</span>(<span class="dv">100</span>), <span class="at">type =</span> <span class="st">"GEV"</span>)</span>
+<span id="cb44-4"><a href="#cb44-4"></a>timeB<span class="ot">=</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb44-5"><a href="#cb44-5"></a>timeB <span class="sc">-</span> timeA</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Time difference of 0.007561922 secs</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1"></a>example_gev_fit_mle<span class="sc">$</span>results<span class="sc">$</span>par <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>location    scale    shape 
+   -0.04     0.88    -0.11 </code></pre>
+</div>
+</div>
+</section>
+<section id="lmoments-is-quick" class="slide level2">
+<h2>LMoments is quick!</h2>
+<p>If you are fitting a lot of stationary GEVs you might like LMoments. <br></p>
+<p>This is because LMoments is a non-parametric estimator.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb48-2"><a href="#cb48-2"></a>timeC <span class="ot">=</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb48-3"><a href="#cb48-3"></a>example_gev_fit_lmoments <span class="ot">=</span> <span class="fu">fevd</span>(<span class="at">x =</span> <span class="fu">revd</span>(<span class="dv">100</span>), <span class="at">type =</span> <span class="st">"GEV"</span>, <span class="at">method =</span> <span class="st">"Lmoments"</span>)</span>
+<span id="cb48-4"><a href="#cb48-4"></a>timeD<span class="ot">=</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb48-5"><a href="#cb48-5"></a>timeD <span class="sc">-</span> timeC</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Time difference of 0.001476049 secs</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1"></a>example_gev_fit_lmoments<span class="sc">$</span>results <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>location    scale    shape 
+   -0.05     0.87    -0.08 </code></pre>
+</div>
+</div>
+<p>That’s 5.12 times as fast.</p>
+</section>
+<section id="quick-debugs---use.phi" class="slide level2">
+<h2>Quick debugs - use.phi</h2>
+<ul>
+<li><p>If your model fails to fit one of the common reasons is that the scale parameter is negative.</p></li>
+<li><p>You can force the optimiser to fit the log of the scale parameter instead to avoid this - set <code>use.phi = TRUE</code></p></li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb52-2"><a href="#cb52-2"></a>example_gev_fit_phi <span class="ot">=</span> <span class="fu">fevd</span>(<span class="at">x =</span> <span class="fu">revd</span>(<span class="dv">100</span>), <span class="at">type =</span> <span class="st">"GEV"</span>, <span class="at">use.phi =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb52-3"><a href="#cb52-3"></a></span>
+<span id="cb52-4"><a href="#cb52-4"></a>example_gev_fit_phi<span class="sc">$</span>results<span class="sc">$</span>par</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   location   log.scale       shape 
+-0.03750506 -0.13035269 -0.10569546 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1"></a><span class="fu">exp</span>(example_gev_fit_phi<span class="sc">$</span>results<span class="sc">$</span>par[<span class="dv">2</span>]) <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>() <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.88</code></pre>
+</div>
+</div>
+</section>
+<section id="optimiser-is-finicky" class="slide level2">
+<h2>Optimiser is finicky</h2>
+<ul>
+<li><p>Still having problems with your model fit, try initialising your parameter estimates using <code>initial</code></p></li>
+<li><p>Lmoments is useful for automatically setting a starting point</p></li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1"></a>init_par <span class="ot">=</span> <span class="fu">list</span>(<span class="st">"location"</span> <span class="ot">=</span> <span class="sc">-</span><span class="fl">0.02</span>, <span class="st">"scale"</span> <span class="ot">=</span> <span class="fl">0.94</span>, <span class="st">"shape"</span> <span class="ot">=</span> <span class="fl">0.08</span>)</span>
+<span id="cb56-2"><a href="#cb56-2"></a></span>
+<span id="cb56-3"><a href="#cb56-3"></a>example_gev_fit_init <span class="ot">=</span> <span class="fu">fevd</span>(<span class="at">x =</span> <span class="fu">revd</span>(<span class="dv">100</span>), <span class="at">type =</span> <span class="st">"GEV"</span>, <span class="at">initial =</span> init_par)</span>
+<span id="cb56-4"><a href="#cb56-4"></a></span>
+<span id="cb56-5"><a href="#cb56-5"></a>example_gev_fit_init<span class="sc">$</span>results<span class="sc">$</span>par <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>location    scale    shape 
+   -0.07     0.80     0.08 </code></pre>
+</div>
+</div>
+<ul>
+<li><p>Still not working, try a different starting point</p></li>
+<li><p>You should also check your data here for any problem observations</p></li>
+</ul>
+</section>
+<section id="handling-a-bad-fit" class="slide level2">
+<h2>Handling a bad fit</h2>
+<p>Fit enough of these distributions you will come into troubles with the optimiser.</p>
+<p>Example function replicating a failed fit:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1"></a>get_pars_from_model <span class="ot">=</span> <span class="cf">function</span>(vec){</span>
+<span id="cb58-2"><a href="#cb58-2"></a>  </span>
+<span id="cb58-3"><a href="#cb58-3"></a>  rand_samp <span class="ot">=</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>), <span class="dv">1</span>)</span>
+<span id="cb58-4"><a href="#cb58-4"></a>  </span>
+<span id="cb58-5"><a href="#cb58-5"></a>  <span class="cf">if</span>(<span class="fu">as.logical</span>(rand_samp))</span>
+<span id="cb58-6"><a href="#cb58-6"></a>    <span class="fu">stop</span>(<span class="st">"Too bad your fit randomly fails :("</span>)</span>
+<span id="cb58-7"><a href="#cb58-7"></a>  </span>
+<span id="cb58-8"><a href="#cb58-8"></a>  model_fit <span class="ot">=</span> <span class="fu">fevd</span>(vec)</span>
+<span id="cb58-9"><a href="#cb58-9"></a>  pars <span class="ot">=</span> model_fit<span class="sc">$</span>results<span class="sc">$</span>par <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">3</span>)</span>
+<span id="cb58-10"><a href="#cb58-10"></a>  <span class="fu">return</span>(pars)</span>
+<span id="cb58-11"><a href="#cb58-11"></a>  </span>
+<span id="cb58-12"><a href="#cb58-12"></a>}</span>
+<span id="cb58-13"><a href="#cb58-13"></a></span>
+<span id="cb58-14"><a href="#cb58-14"></a><span class="fu">get_pars_from_model</span>(<span class="fu">revd</span>(<span class="dv">100</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>location    scale    shape 
+  -0.046    0.998    0.027 </code></pre>
+</div>
+</div>
+</section>
+<section id="trycatch" class="slide level2">
+<h2>Trycatch</h2>
+<p>When running a script or fitting multiple distributions to avoid optimiser errors use <code>tryCatch()</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1"></a>try_fit <span class="ot">&lt;-</span> <span class="cf">function</span>(vec){</span>
+<span id="cb60-2"><a href="#cb60-2"></a>  <span class="fu">tryCatch</span>(</span>
+<span id="cb60-3"><a href="#cb60-3"></a>    {</span>
+<span id="cb60-4"><a href="#cb60-4"></a>      pars <span class="ot">&lt;-</span> <span class="fu">get_pars_from_model</span>(vec)</span>
+<span id="cb60-5"><a href="#cb60-5"></a>      <span class="fu">return</span>(<span class="fu">c</span>(pars, <span class="st">"good"</span>))</span>
+<span id="cb60-6"><a href="#cb60-6"></a>    }, </span>
+<span id="cb60-7"><a href="#cb60-7"></a>    <span class="at">warning =</span> <span class="cf">function</span>(w){</span>
+<span id="cb60-8"><a href="#cb60-8"></a>      <span class="fu">message</span>(w)</span>
+<span id="cb60-9"><a href="#cb60-9"></a>      <span class="fu">return</span>(<span class="fu">c</span>(<span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="st">"warning"</span>))</span>
+<span id="cb60-10"><a href="#cb60-10"></a>    },</span>
+<span id="cb60-11"><a href="#cb60-11"></a>    <span class="at">error =</span> <span class="cf">function</span>(e){</span>
+<span id="cb60-12"><a href="#cb60-12"></a>      <span class="fu">message</span>(e)</span>
+<span id="cb60-13"><a href="#cb60-13"></a>      <span class="fu">return</span>(<span class="fu">c</span>(<span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="st">"error"</span>))</span>
+<span id="cb60-14"><a href="#cb60-14"></a>    }</span>
+<span id="cb60-15"><a href="#cb60-15"></a>  )</span>
+<span id="cb60-16"><a href="#cb60-16"></a>}</span>
+<span id="cb60-17"><a href="#cb60-17"></a><span class="fu">try_fit</span>(<span class="fu">revd</span>(<span class="dv">100</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>location    scale    shape          
+ "0.081"   "0.97"  "0.069"   "good" </code></pre>
+</div>
+</div>
+</section>
+<section id="handling-a-bad-fit-1" class="slide level2">
+<h2>Handling a Bad Fit</h2>
+<p>Here is an example:</p>
+<div class="cell">
+
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb62-2"><a href="#cb62-2"></a>results <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="fu">matrix</span>(<span class="cn">NA</span>, <span class="dv">10</span>,<span class="dv">4</span>))</span>
+<span id="cb62-3"><a href="#cb62-3"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>){</span>
+<span id="cb62-4"><a href="#cb62-4"></a>  results[i, ] <span class="ot">=</span> <span class="fu">try_fit</span>(<span class="fu">revd</span>(<span class="dv">100</span>))</span>
+<span id="cb62-5"><a href="#cb62-5"></a>}</span>
+<span id="cb62-6"><a href="#cb62-6"></a></span>
+<span id="cb62-7"><a href="#cb62-7"></a>results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       X1    X2     X3    X4
+1  -0.051 0.877   -0.1  good
+2  -0.048 0.815  0.084  good
+3  -0.044 0.997  0.027  good
+4    &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt; error
+5    &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt; error
+6   0.126 0.999  0.095  good
+7   0.087  0.97 -0.026  good
+8  -0.119 1.087  0.001  good
+9  -0.067 0.997  0.013  good
+10   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt; error</code></pre>
+</div>
+</div>
+</section></section>
+<section>
+<section id="fitting-a-generalised-pareto" class="title-slide slide level1 center">
+<h1>Fitting a Generalised Pareto</h1>
+<p>Covering the basics</p>
+</section>
+<section id="so-far" class="slide level2">
+<h2>So far</h2>
+<div class="callout callout-tip callout-captioned callout-style-default">
+<div class="callout-body">
+<div class="callout-caption">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>GEVs</strong></p>
+</div>
+<div class="callout-content">
+<div>
+<ul>
+<li class="fragment"><p>GEV distributions are fit to data that is the largest observation in a block<br>
+<em>eg. Wettest day of the year</em></p></li>
+<li class="fragment"><p>In a given year, there may be more than one extreme observation</p></li>
+<li class="fragment"><p>In some years, maybe no observations are extreme</p></li>
+<li class="fragment"><p>But what if you want to use all the extreme observations to fit a distribution<br>
+ie. <span class="math inline">\(\mathbb{P}(X &gt; y + u | X &gt; u)\)</span></p></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="generalised-pareto-distribution" class="slide level2">
+<h2>Generalised Pareto Distribution</h2>
+<div class="callout callout-tip callout-captioned callout-style-default">
+<div class="callout-body">
+<div class="callout-caption">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Can fit a Generalised Pareto Distribution (GP, PoT)</strong></p>
+</div>
+<div class="callout-content">
+<div>
+<ul>
+<li class="fragment"><p>Closely related to the GEV</p></li>
+<li class="fragment"><p>Model is fit to all observations exceeding a high threshold, <span class="math inline">\(u\)</span>.</p></li>
+<li class="fragment"><p>The threshold, <span class="math inline">\(u\)</span>, needs to be extreme, so that the approximation to limiting distribution is reasonable. <em>e.g</em> <span class="math inline">\(q_u &gt;= 0.95\)</span></p></li>
+<li class="fragment"><p>Picking the threshold is a classic bias-variance trade-off.</p></li>
+<li class="fragment"><p>Note the GP distribution has two parameters not three, <span class="math inline">\(\tilde{\sigma}\)</span> and <span class="math inline">\(\xi\)</span>.</p></li>
+<li class="fragment"><p><span class="math inline">\(\tilde{\sigma}\)</span> is sort of like the scale parameter. <span class="math inline">\(\tilde{\sigma} = \sigma + \xi(u - \mu)\)</span></p></li>
+<li class="fragment"><p>Note that <span class="math inline">\(\tilde{\sigma}\)</span> is a linear function of <span class="math inline">\(u\)</span> (can use this to set the threshold).</p></li>
+<li class="fragment"><p><span class="math inline">\(\xi\)</span> is the same as in the GEV.</p></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="quick-example" class="slide level2">
+<h2>Quick example</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1"></a><span class="co"># Get our precipitation observations </span></span>
+<span id="cb64-2"><a href="#cb64-2"></a>prcp_obs <span class="ot">=</span> stn_data_preprocessed <span class="sc">|&gt;</span></span>
+<span id="cb64-3"><a href="#cb64-3"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(element <span class="sc">==</span> <span class="st">"prcp"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb64-4"><a href="#cb64-4"></a>  dplyr<span class="sc">::</span><span class="fu">pull</span>(observation)</span>
+<span id="cb64-5"><a href="#cb64-5"></a></span>
+<span id="cb64-6"><a href="#cb64-6"></a><span class="co"># Estimate a high threshold</span></span>
+<span id="cb64-7"><a href="#cb64-7"></a>prcp_threshold <span class="ot">=</span> <span class="fu">quantile</span>(prcp_obs, <span class="fl">0.975</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb64-8"><a href="#cb64-8"></a></span>
+<span id="cb64-9"><a href="#cb64-9"></a><span class="co"># Filter your data to the exceedances   </span></span>
+<span id="cb64-10"><a href="#cb64-10"></a>prcp_exceedances <span class="ot">=</span> stn_data_preprocessed <span class="sc">|&gt;</span></span>
+<span id="cb64-11"><a href="#cb64-11"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(element <span class="sc">==</span> <span class="st">"prcp"</span> <span class="sc">&amp;</span> </span>
+<span id="cb64-12"><a href="#cb64-12"></a>                  observation <span class="sc">&gt;</span> prcp_threshold) <span class="sc">|&gt;</span></span>
+<span id="cb64-13"><a href="#cb64-13"></a>  dplyr<span class="sc">::</span><span class="fu">pull</span>(observation)</span>
+<span id="cb64-14"><a href="#cb64-14"></a></span>
+<span id="cb64-15"><a href="#cb64-15"></a><span class="co"># Fit a GP</span></span>
+<span id="cb64-16"><a href="#cb64-16"></a>prcp_gp_fit <span class="ot">=</span> <span class="fu">fevd</span>(prcp_exceedances, <span class="at">threshold =</span> prcp_threshold, <span class="at">type =</span> <span class="st">"GP"</span>)</span>
+<span id="cb64-17"><a href="#cb64-17"></a>  </span>
+<span id="cb64-18"><a href="#cb64-18"></a><span class="co"># Parameters </span></span>
+<span id="cb64-19"><a href="#cb64-19"></a>prcp_gp_fit<span class="sc">$</span>results<span class="sc">$</span>par</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     scale      shape 
+14.1656880  0.1892685 </code></pre>
+</div>
+</div>
+</section>
+<section id="check-your-diagnostics" class="slide level2">
+<h2>Check your diagnostics</h2>
+
+<img data-src="wombats_tutorial_files/figure-revealjs/unnamed-chunk-29-1.png" width="960" class="r-stretch"></section>
+<section id="other-considerations" class="slide level2">
+<h2>Other considerations</h2>
+<div class="callout callout-tip callout-captioned callout-style-default">
+<div class="callout-body">
+<div class="callout-caption">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Return Periods</strong></p>
+</div>
+<div class="callout-content">
+<div>
+<ul>
+<li class="fragment"><p>For GEVs, the return periods were the number of <em>years</em> on average you expect to wait to see an event of a given return level</p></li>
+<li class="fragment"><p>But for GEVs, each observation represented a year</p></li>
+<li class="fragment"><p>For GPs, the return period is the the number of <em>observations</em> on average you expect before you see an event of a given level.</p></li>
+<li class="fragment"><p>As for GPs, you can have more than one observation per year</p></li>
+<li class="fragment"><p>In a stationary context, still quite interprettable, in a non-stationary context it gets a bit trickier.</p></li>
+<li class="fragment"><p>For these reasons, many people prefer a GEV.</p></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<p>See Chapter 4 and 5 of <span class="citation" data-cites="coles2001">(<a href="#/references" role="doc-biblioref" onclick="">Coles 2001</a>)</span>.</p>
+</section>
+<section id="your-turn-4" class="slide level2">
+<h2>Your turn</h2>
+<p><br><br></p>
+<div class="callout callout-tip callout-captioned callout-style-default">
+<div class="callout-body">
+<div class="callout-caption">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Practice Time</strong></p>
+</div>
+<div class="callout-content">
+<ul>
+<li><p>Take some time now to fit a Generalised Pareto</p></li>
+<li><p>Extra: Look at how many extremes you have per year. (Can use the count code from earlier when we looked at how many observations per year.)</p></li>
+<li><p>We will also be wrapping up today’s tutorial shortly, so get to some help to wrap up your code projects.</p></li>
+</ul>
+</div>
+</div>
+</div>
+</section></section>
+<section>
+<section id="overview" class="title-slide slide level1 center">
+<h1>Overview</h1>
+
+</section>
+<section id="summary" class="slide level2">
+<h2>Summary</h2>
+<div class="callout callout-tip callout-captioned callout-style-default">
+<div class="callout-body">
+<div class="callout-caption">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Today:</strong></p>
+</div>
+<div class="callout-content">
+<ul>
+<li><p>Learnt about the basics of extreme value distributions</p></li>
+<li><p>Covered how to fit these distributions in R</p></li>
+<li><p>Looked at return periods and the nuance of fitting these</p></li>
+<li><p>Covered some tips and tricks for fitting these distributions</p></li>
+<li><p>And I hope we’ve had fun!</p></li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<section id="references" class="slide level2 smaller scrollable">
+<h2>References</h2>
+<!-- # Kate notes -->
+<!-- Return level plot - add dots -->
+<!-- Return level plot - non-stationary dots :( -->
+<!-- Fix reference slide -->
+<div class="footer footer-default">
+
+</div>
+<div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-rnoaa" class="csl-entry" role="doc-biblioentry">
+Chamberlain, Scott. 2021. <span>“Rnoaa: ’NOAA’ Weather Data from r.”</span> <a href="https://CRAN.R-project.org/package=rnoaa">https://CRAN.R-project.org/package=rnoaa</a>.
+</div>
+<div id="ref-coles2001" class="csl-entry" role="doc-biblioentry">
+Coles, Stuart. 2001. <em>An Introduction to Statistical Modeling of Extreme Values.</em> London: Springer.
+</div>
+<div id="ref-extRemes-2" class="csl-entry" role="doc-biblioentry">
+Gilleland, Eric, and Richard W. Katz. 2016. <span>“<span></span>extRemes<span></span> 2.0: An Extreme Value Analysis Package in <span></span>r<span></span>”</span> 72. <a href="https://doi.org/10.18637/jss.v072.i08">https://doi.org/10.18637/jss.v072.i08</a>.
+</div>
+</div>
+</section></section>
+    </div>
+  </div>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script>
+  <script src="wombats_tutorial_files/libs/revealjs/dist/reveal.js"></script>
+  <!-- reveal.js plugins -->
+  <script src="wombats_tutorial_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
+  <script src="wombats_tutorial_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
+  <script src="wombats_tutorial_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
+  <script src="wombats_tutorial_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="wombats_tutorial_files/libs/revealjs/plugin/quarto-support/support.js"></script>
+  
+
+  <script src="wombats_tutorial_files/libs/revealjs/plugin/notes/notes.js"></script>
+  <script src="wombats_tutorial_files/libs/revealjs/plugin/search/search.js"></script>
+  <script src="wombats_tutorial_files/libs/revealjs/plugin/zoom/zoom.js"></script>
+  <script src="wombats_tutorial_files/libs/revealjs/plugin/math/math.js"></script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://revealjs.com/config/
+      Reveal.initialize({
+'controlsAuto': true,
+'previewLinksAuto': false,
+'smaller': false,
+'pdfSeparateFragments': false,
+'autoAnimateEasing': "ease",
+'autoAnimateDuration': 1,
+'autoAnimateUnmatched': true,
+'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'smaller': false,
+ 
+        // Display controls in the bottom right corner
+        controls: false,
+
+        // Help the user learn the controls by providing hints, for example by
+        // bouncing the down arrow when they first encounter a vertical slide
+        controlsTutorial: false,
+
+        // Determines where controls appear, "edges" or "bottom-right"
+        controlsLayout: 'edges',
+
+        // Visibility rule for backwards navigation arrows; "faded", "hidden"
+        // or "visible"
+        controlsBackArrows: 'faded',
+
+        // Display a presentation progress bar
+        progress: true,
+
+        // Display the page number of the current slide
+        slideNumber: false,
+
+        // 'all', 'print', or 'speaker'
+        showSlideNumber: 'all',
+
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+        hash: true,
+
+        // Start with 1 for the hash rather than 0
+        hashOneBasedIndex: false,
+
+        // Flags if we should monitor the hash and change slides accordingly
+        respondToHashChanges: true,
+
+        // Push each slide change to the browser history
+        history: true,
+
+        // Enable keyboard shortcuts for navigation
+        keyboard: true,
+
+        // Enable the slide overview mode
+        overview: true,
+
+        // Disables the default reveal.js slide layout (scaling and centering)
+        // so that you can use custom CSS layout
+        disableLayout: false,
+
+        // Vertical centering of slides
+        center: false,
+
+        // Enables touch navigation on devices with touch input
+        touch: true,
+
+        // Loop the presentation
+        loop: false,
+
+        // Change the presentation direction to be RTL
+        rtl: false,
+
+        // see https://revealjs.com/vertical-slides/#navigation-mode
+        navigationMode: 'linear',
+
+        // Randomizes the order of slides each time the presentation loads
+        shuffle: false,
+
+        // Turns fragments on and off globally
+        fragments: true,
+
+        // Flags whether to include the current fragment in the URL,
+        // so that reloading brings you to the same fragment position
+        fragmentInURL: false,
+
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: false,
+
+        // Flags if we should show a help overlay when the questionmark
+        // key is pressed
+        help: true,
+
+        // Flags if it should be possible to pause the presentation (blackout)
+        pause: true,
+
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: false,
+
+        // Global override for autoplaying embedded media (null/true/false)
+        autoPlayMedia: null,
+
+        // Global override for preloading lazy-loaded iframes (null/true/false)
+        preloadIframes: null,
+
+        // Number of milliseconds between automatically proceeding to the
+        // next slide, disabled when set to 0, this value can be overwritten
+        // by using a data-autoslide attribute on your slides
+        autoSlide: 0,
+
+        // Stop auto-sliding after user input
+        autoSlideStoppable: true,
+
+        // Use this method for navigation when auto-sliding
+        autoSlideMethod: null,
+
+        // Specify the average time in seconds that you think you will spend
+        // presenting each slide. This is used to show a pacing timer in the
+        // speaker view
+        defaultTiming: null,
+
+        // Enable slide navigation via mouse wheel
+        mouseWheel: false,
+
+        // The display mode that will be used to show slides
+        display: 'block',
+
+        // Hide cursor if inactive
+        hideInactiveCursor: true,
+
+        // Time before the cursor is hidden (in ms)
+        hideCursorTime: 5000,
+
+        // Opens links in an iframe preview overlay
+        previewLinks: false,
+
+        // Transition style (none/fade/slide/convex/concave/zoom)
+        transition: 'none',
+
+        // Transition speed (default/fast/slow)
+        transitionSpeed: 'default',
+
+        // Transition style for full page slide backgrounds
+        // (none/fade/slide/convex/concave/zoom)
+        backgroundTransition: 'none',
+
+        // Number of slides away from the current that are visible
+        viewDistance: 3,
+
+        // Number of slides away from the current that are visible on mobile
+        // devices. It is advisable to set this to a lower number than
+        // viewDistance in order to save resources.
+        mobileViewDistance: 2,
+
+        // The "normal" size of the presentation, aspect ratio will be preserved
+        // when the presentation is scaled to fit different resolutions. Can be
+        // specified using percentage units.
+        width: 1050,
+
+        height: 700,
+
+        // Factor of the display size that should remain empty around the content
+        margin: 0.1,
+
+        math: {
+          mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
+          config: 'TeX-AMS_HTML-full',
+          tex2jax: {
+            inlineMath: [['\\(','\\)']],
+            displayMath: [['\\[','\\]']],
+            balanceBraces: true,
+            processEscapes: false,
+            processRefs: true,
+            processEnvironments: true,
+            preview: 'TeX',
+            skipTags: ['script','noscript','style','textarea','pre','code'],
+            ignoreClass: 'tex2jax_ignore',
+            processClass: 'tex2jax_process'
+          },
+        },
+
+        // reveal.js plugins
+        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, QuartoSupport,
+
+          RevealMath,
+          RevealNotes,
+          RevealSearch,
+          RevealZoom
+        ]
+      });
+    </script>
+    
+    <script>
+      // htmlwidgets need to know to resize themselves when slides are shown/hidden.
+      // Fire the "slideenter" event (handled by htmlwidgets.js) when the current
+      // slide changes (different for each slide format).
+      (function () {
+        // dispatch for htmlwidgets
+        function fireSlideEnter() {
+          const event = window.document.createEvent("Event");
+          event.initEvent("slideenter", true, true);
+          window.document.dispatchEvent(event);
+        }
+
+        function fireSlideChanged(previousSlide, currentSlide) {
+          fireSlideEnter();
+
+          // dispatch for shiny
+          if (window.jQuery) {
+            if (previousSlide) {
+              window.jQuery(previousSlide).trigger("hidden");
+            }
+            if (currentSlide) {
+              window.jQuery(currentSlide).trigger("shown");
+            }
+          }
+        }
+
+        // hookup for slidy
+        if (window.w3c_slidy) {
+          window.w3c_slidy.add_observer(function (slide_num) {
+            // slide_num starts at position 1
+            fireSlideChanged(null, w3c_slidy.slides[slide_num - 1]);
+          });
+        }
+
+      })();
+    </script>
+
+    <script id="quarto-html-after-body" type="application/javascript">
+    window.document.addEventListener("DOMContentLoaded", function (event) {
+      const toggleBodyColorMode = (bsSheetEl) => {
+        const mode = bsSheetEl.getAttribute("data-mode");
+        const bodyEl = window.document.querySelector("body");
+        if (mode === "dark") {
+          bodyEl.classList.add("quarto-dark");
+          bodyEl.classList.remove("quarto-light");
+        } else {
+          bodyEl.classList.add("quarto-light");
+          bodyEl.classList.remove("quarto-dark");
+        }
+      }
+      const toggleBodyColorPrimary = () => {
+        const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+        if (bsSheetEl) {
+          toggleBodyColorMode(bsSheetEl);
+        }
+      }
+      toggleBodyColorPrimary();  
+      const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
+      tabsets.forEach(function(tabset) {
+        const tabby = new Tabby('#' + tabset.id);
+      });
+      const clipboard = new window.ClipboardJS('.code-copy-button', {
+        target: function(trigger) {
+          return trigger.previousElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        // button target
+        const button = e.trigger;
+        // don't keep focus
+        button.blur();
+        // flash "checked"
+        button.classList.add('code-copy-button-checked');
+        var currentTitle = button.getAttribute("title");
+        button.setAttribute("title", "Copied!");
+        let tooltip;
+        if (window.bootstrap) {
+          button.setAttribute("data-bs-toggle", "tooltip");
+          button.setAttribute("data-bs-placement", "left");
+          button.setAttribute("data-bs-title", "Copied!");
+          tooltip = new bootstrap.Tooltip(button, 
+            { trigger: "manual", 
+              customClass: "code-copy-button-tooltip",
+              offset: [0, -8]});
+          tooltip.show();    
+        }
+        setTimeout(function() {
+          if (tooltip) {
+            tooltip.hide();
+            button.removeAttribute("data-bs-title");
+            button.removeAttribute("data-bs-toggle");
+            button.removeAttribute("data-bs-placement");
+          }
+          button.setAttribute("title", currentTitle);
+          button.classList.remove('code-copy-button-checked');
+        }, 1000);
+        // clear code selection
+        e.clearSelection();
+      });
+      function tippyHover(el, contentFn) {
+        const config = {
+          allowHTML: true,
+          content: contentFn,
+          maxWidth: 500,
+          delay: 100,
+          arrow: false,
+          appendTo: function(el) {
+              return el.closest('section.slide') || el.parentElement;
+          },
+          interactive: true,
+          interactiveBorder: 10,
+          theme: 'quarto-reveal',
+          placement: 'bottom-start'
+        };
+          config['offset'] = [0,0];
+          config['maxWidth'] = 700;
+        window.tippy(el, config); 
+      }
+      const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+      for (var i=0; i<noterefs.length; i++) {
+        const ref = noterefs[i];
+        tippyHover(ref, function() {
+          // use id or data attribute instead here
+          let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+          try { href = new URL(href).hash; } catch {}
+          const id = href.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          return note.innerHTML;
+        });
+      }
+      const findCites = (el) => {
+        const parentEl = el.parentElement;
+        if (parentEl) {
+          const cites = parentEl.dataset.cites;
+          if (cites) {
+            return {
+              el,
+              cites: cites.split(' ')
+            };
+          } else {
+            return findCites(el.parentElement)
+          }
+        } else {
+          return undefined;
+        }
+      };
+      var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+      for (var i=0; i<bibliorefs.length; i++) {
+        const ref = bibliorefs[i];
+        const citeInfo = findCites(ref);
+        if (citeInfo) {
+          tippyHover(citeInfo.el, function() {
+            var popup = window.document.createElement('div');
+            citeInfo.cites.forEach(function(cite) {
+              var citeDiv = window.document.createElement('div');
+              citeDiv.classList.add('hanging-indent');
+              citeDiv.classList.add('csl-entry');
+              var biblioDiv = window.document.getElementById('ref-' + cite);
+              if (biblioDiv) {
+                citeDiv.innerHTML = biblioDiv.innerHTML;
+              }
+              popup.appendChild(citeDiv);
+            });
+            return popup.innerHTML;
+          });
+        }
+      }
+    });
+    </script>
+    
+
+</body></html>

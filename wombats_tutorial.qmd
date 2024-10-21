@@ -1,0 +1,1394 @@
+---
+title: "An Introduction to Extreme Value Theory in R"
+author: "Kate Saunders"
+format: 
+  revealjs:
+    css: mathstyle.css
+editor: visual
+execute: 
+  enabled: true
+# server: shiny
+bibliography: references.bib
+---
+
+## Motivation
+
+<br> Estimating the probability of extreme events is useful for:\
+<br>
+
+-   Knowing how high to build a dam to reduce flood risk\
+    <br>
+
+-   Appropriately pricing insurance at given a location\
+    <br>
+
+-   Advising government about the risks from climate extremes <br>
+
+## Today
+
+-   Statistics of Extremes
+-   Getting climate data in R
+-   Learn how to fit extreme value distributions.\
+    (diagnostics, model selection etc.)
+-   Learn about return periods
+-   Troubleshooting
+
+# Background stats
+
+## Observations vs Random Variables
+
+::: incremental
+[**Observations**]{.text-color} are things we've seen. <br>
+
+-   Example: rolled a six or yesterday's temperature\
+-   Use lower case letters to write observations $x$
+:::
+
+::: incremental
+<br> [**Random variables**]{.text-color} are things we've yet to see
+
+-   Example: next roll of the dice or tomorrow's temperature.\
+-   Statistically: Use upper case letters to write random variables $X$.
+:::
+
+## Discrete Random Variables
+
+::: incremental
+Let $X$ be the random variable for a six sided dice roll then: <br>
+
+-   Probability my next roll is a 4 is $\mathbb{P}(X = 4) = 1/6$
+
+-   Probability my next roll is less than a 4 is $\mathbb{P}(X < 4) = 3/6$
+
+-   The **probability mass function** for discrete random variables is $\mathbb{P}(X = x)$.
+
+-   The **cumulative distribution function** for discrete random variables $\mathbb{P}(X \leq x)$
+:::
+
+## Discrete Random Variables ctd.
+
+```{r, warnings = FALSE, message = FALSE}
+library(tidyverse)
+library(patchwork)
+```
+
+```{r echo = FALSE}
+dice_data = data.frame(x = 1:6, y = rep(1/6, 6)) |>
+  mutate(cumsum_y = cumsum(y))
+
+mass_plot <- ggplot(data = dice_data) + 
+  geom_col(aes(x = x, y = y)) + 
+  theme_bw() + 
+  xlab("Dice Roll") + 
+  ylab("P(X = x)") +
+  ggtitle("Probability Mass Function") + 
+  ylim(c(0,1))
+
+disc_distribution_plot <- ggplot(data = dice_data) + 
+  geom_col(aes(x = x, y = cumsum_y)) +
+  theme_bw() + 
+ xlab("Dice Roll") + 
+ ylab("Pr(X <= x)") +
+ ggtitle("Cumulative Distribution Function ") + 
+ ylim(c(0,1))
+
+
+mass_plot + disc_distribution_plot
+```
+
+## Continuous random variables
+
+```{r echo = FALSE}
+temp_values = seq(0, 45, length.out = 1000)
+temp_mean = 20
+temp_sd = 3.5
+
+temp_density <- dnorm(temp_values, mean = temp_mean, sd = temp_sd) 
+temp_distribution <- pnorm(temp_values, mean = temp_mean, sd = temp_sd)
+
+temp_data_frame = data.frame(temp_values, temp_density, temp_distribution)
+
+density_plot <- ggplot(data= temp_data_frame) + 
+  geom_line(aes(x = temp_values, y = temp_density)) + 
+  theme_bw() + 
+  xlab("Temperature") + 
+  ylab("f(x)") +
+  ggtitle("Probability Density Function f(X = x)")
+
+distribution_plot <- ggplot(data= temp_data_frame) + 
+  geom_line(aes(x = temp_values, y = temp_distribution)) +
+  theme_bw() + 
+  xlab("Temperature") + 
+  ylab("F(x)") +
+  ggtitle("Probability Distribution Function F(X < x)")
+
+density_plot + distribution_plot
+```
+
+## Law of Large Numbers
+
+```{r echo = FALSE}
+set.seed(1)
+num_samples = seq(10,1000, by = 5)
+
+fun_sample_mean <- function(i){mean(rnorm(i, mean = temp_mean, sd = temp_sd))}
+
+sample_mean = sapply(num_samples, fun_sample_mean)
+                 
+ggplot(data = NULL) + 
+  geom_point(aes(x = num_samples, y = sample_mean)) + 
+  geom_hline(aes(yintercept = temp_mean), col = "red", linetype = "dotted") +
+  theme_bw() + 
+  xlab("Number of Samples") + 
+  ylab("Sample Mean") + 
+  ggtitle("Estimating the Mean")
+```
+
+<!-- ## Estimating the standard deviation -->
+
+<!-- ```{r} -->
+
+<!-- set.seed(1) -->
+
+<!-- num_samples = seq(10,500, by = 10) -->
+
+<!-- fun_sample_sd <- function(i){sd(rnorm(i, mean = temp_mean, sd = temp_sd))/sqrt(i-1)} -->
+
+<!-- sample_sd = sapply(num_samples, fun_sample_sd) -->
+
+<!-- ggplot(data = NULL) +  -->
+
+<!--   geom_point(aes(x = num_samples, y = sample_sd)) +  -->
+
+<!--   theme_bw() +  -->
+
+<!--   xlab("Number of Samples") +  -->
+
+<!--   ylab("Estimated Standard Deviation")  -->
+
+<!-- ``` -->
+
+## Central Limit Theorem
+
+::: incremental
+-   [**What is it?**]{.text-color}For large enough sample, the distribution of the sample mean will be approximately normal.
+
+-   [**What do we need for this to be true:**]{.text-color} Continuous random variable with a finite mean and finite variance.
+
+-   [**Why is that cool?**]{.text-color} No matter what the original data looks like, if you take the average of enough samples, the distribution of those averages will look like a normal distribution.
+
+-   [**Why is that useful?**]{.text-color} Good for statistical inference, e.g. hypothesis testing, and estimating confidence intervals.
+:::
+
+# Extreme value theory
+
+## Set up
+
+Consider a continuous random variable $X$
+
+<br><br>
+
+with distribution function $F(x) = \mathbb{P}(X < x)$.
+
+<br><br>
+
+For a sequence of independent and identically distributed random variables, $X_1$, $X_2$, $\dots$, $X_n$ the maximum is
+
+$$
+M_{n} = \max \lbrace X_1, X_2, \dots X_{n} \rbrace.
+$$
+
+## Set up
+
+The probability $M_n$ is less than some high quantile $z$ is
+
+$$ \mathbb{P}(M_{n} < z) = \mathbb{P}(X_1 < z, X_2 < z, \dots , X_{n} < z)$$
+
+<br> Using that the random variables are independent
+
+$$ \mathbb{P}(M_{n} < z) = \mathbb{P}(X_1 < z) \times \mathbb{P}(X_2 < z), \times \dots \times \mathbb{P}(X_{n} < z)$$ <br> Using that the random variables are identically distributed
+
+$$ \mathbb{P}(M_{n} < z) = \mathbb{P}(X < z)^n = \left[ F(z) \right]^n $$
+
+## Set Up
+
+But we don't know $F(z)$
+
+We can try to estimate $F(z)$ from the data.
+
+e.g For $m$ observations:
+
+$$ F(z) = \mathbb{P}(X < z) = \dfrac{1}{m}\sum_{i = 1}^m \left( x_i < z \right). $$
+
+That won't work well for extreme values of $z$.
+
+## Set Up
+
+<br> Other problem for large $n$ values, small errors in the estimation of $F(z)$ become big errors when we estimate $\left[F(z)\right]^n$. <br><br>
+
+So how else can we estimate $\mathbb{P}(M_n < z)$?
+
+## Limiting Distributions
+
+While we don't know $\left[F(z)\right]^n$\
+<br>
+
+We do know what the limiting distribution is - call that $G(z)$!\
+<br>
+
+We can estimate $G(z)$ using extreme value theory .\
+<br>
+
+So for large enough $n$ provided the limit exists and is non-dengerate:
+
+$$ \mathbb{P}(M_n < z) = \left[F(z)\right]^n \approx \lim_{n \rightarrow \infty} \left[F(z)\right]^n \rightarrow G(z; \mu, \sigma, \xi)$$
+
+<!-- ## Extreme Value Theorem -->
+
+<!-- A "Central Limit Theorem" but for extremes. -->
+
+<!-- <span class="text-color">**What is it?**</span> For large enough sample, the distribution of the maxima will be an extreme value distribution. -->
+
+<!-- <span class="text-color">**What do we need for this to be true:**</span> Continuous random variable, where samples to be identically and independently distributed -->
+
+<!-- <span class="text-color">**Why is that cool?**</span> No matter what the original data looks like, if you take the sample maxima, the distribution of those maxima will look like a generalised extreme value distribution. -->
+
+<!--  \<span class="text-color"\> \*\*Why is that useful?\*\*\</span\>  -->
+
+<!-- Good for making statistical inferences about populations, hypothesis testing, and estimating confidence intervals AND we can now extrapolate beyond our observed data. -->
+
+## Three different types
+
+Depending on the data you start with you can end up with one of three non-degenerate limiting distributions: <br>
+
+::: incremental
+-   [I: Weibull]{.text-color} (Bounded extremes) <br>*e.g. Temperature*
+
+-   [II: Gumbel]{.text-color} (Thin-tailed extremes) <br> *e.g.Storm Surge*
+
+-   [III: Fréchet]{.text-color} (Heavy-tailed extremes) <br> *e.g Rainfall*
+:::
+
+Don't need to know which limiting regime before you start!
+
+## GEV Distribution
+
+Generalised Extreme Value (GEV) Distribution [@coles2001]:
+
+$$  G(z; \mu, \sigma, \xi) = \exp \Bigg\lbrace{ -\left[1 + \xi \left( \dfrac{z - \mu}{\sigma}\right)  \right]^{-1 / \xi}\Bigg\rbrace} $$
+
+Where:
+
+-   $-\infty < \mu < \infty$ is the location parameter,\
+-   $\sigma > 0$ is the scale parameter,\
+-   $-\infty < \xi < \infty$ is the shape parameter,\
+-   and $1 + \xi \left( \frac{z - \mu}{\sigma} \right) > 0$
+
+## GEV Distribution in Shiny
+
+Shiny app time
+
+```{r eval = FALSE, echo = FALSE, warning = FALSE, message = FALSE}
+library(devtools)
+devtools::install_github("ropensci/plotly")
+library(extRemes)
+library(tidyverse)
+library(shiny)
+```
+
+```{r eval = FALSE}
+
+#| context: server
+
+# Define UI for application that draws a histogram
+ui <- fluidPage(
+  
+  # Sidebar with a slider input for number of bins 
+  sidebarLayout(
+    
+    sidebarPanel(
+      sliderInput("loc",
+                  "Location:",
+                  min = -5,
+                  max = 5,
+                  value = 0,
+                  step = 0.025,
+                  animate = animationOptions(interval = 10)),
+      
+      sliderInput("scale",
+                  "Scale:",
+                  min = 0.5,
+                  max = 3,
+                  value = 1,
+                  step = 0.025,
+                  animate = animationOptions(interval = 10)),
+      
+      sliderInput("shape",
+                  "Shape:",
+                  min = -0.5,
+                  max = 1,
+                  value = 0,
+                  step = 0.01)
+    ),
+    
+    # Show a plot of the generated distribution
+    mainPanel(
+      plotOutput("gevPlot")
+    )
+  )
+)
+
+# Define server logic required to draw a histogram
+server <- function(input, output) {
+  
+  output$gevPlot <- renderPlot({
+    
+    x = seq(-10, 20, length.out = 500)
+    y_orig = devd(x, 0, 1, 0)
+    y = devd(x, input$loc, input$scale, input$shape)
+    y_p = pevd(x, input$loc, input$scale, input$shape)
+    
+    df = data.frame(x, y, y_orig, y_p)
+    
+    gev_plot <- ggplot(data = df) + 
+      geom_line(aes(x=x, y=y_orig), linetype = "dotted") + 
+      geom_line(aes(x=x, y=y), col = "blue") + 
+      scale_x_continuous(limits = c(-10, 20)) +
+      scale_y_continuous(limits = c(0, 0.6)) + 
+      xlab("x") +
+      ylab("y") +
+      theme_bw()
+    
+    # ggplotly(gev_plot)
+    gev_plot
+    
+  })
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+
+
+```
+
+## Real world
+
+[**Problem:**]{.text-color}<br> Climate variables like rainfall and temperature are not identically distributed.
+
+<br>
+
+::: incremental
+That's okay. We have options.
+
+-   Stratify your data\
+    *e.g. fit to a stationary period, fit to Summer.*
+
+-   Alternatively you can allow your GEV parameters to vary smoothly as a function of covariates.\
+    *e.g. let* $\mu$ *vary with the year, vary with climate change*
+:::
+
+## Real world
+
+[**Problem:**]{.text-color}<br> Climate variables like rainfall and temperature are not independent. The weather today, has an influence on the weather tomorrow.
+
+<br>
+
+::: incremental
+That's okay.
+
+-   We only worry if there is long-memory in the process.
+
+-   The temperature today is independent of the temperature this time next year
+:::
+
+# Getting Started in R
+
+## Packages
+
+Let's install the packages we need for today:
+
+```{r packages, echo = TRUE}
+if(!require('tidyverse', character.only = TRUE))
+  install.packages('tidyverse')
+
+if(!require('rnoaa', character.only = TRUE)){
+  install.packages("devtools")
+  devtools::install_github("ropensci/rnoaa")
+}
+
+if(!require('extRemes', character.only = TRUE))
+  install.packages('extRemes')
+```
+
+<br> Let's load those packages into our library:
+
+```{r library, echo = TRUE}
+library(tidyverse)
+library(rnoaa)
+library(extRemes)
+```
+
+## Getting Data
+
+Using the `rnoaa` R package [@rnoaa], we can:
+
+-   Access the daily observations in the Global Historical Climate Network (GHCN)
+
+-   For Australia, these stations are the same as those monitored by the Bureau of Meteorology
+
+-   Australian stations have IDs starting with "ASN"
+
+```{r rnoaa, echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE}
+
+# Get meta data
+meta_data <- rnoaa::ghcnd_stations() 
+
+# Restricts to Australian meta data
+aus_code = "ASN"
+aus_meta_data <- meta_data |>
+    dplyr::filter(str_detect(id, aus_code))
+```
+
+## Search for a station
+
+You are welcome to pick a station close to your home or your heart. <br>
+
+**Conditions:** Pick something with a long record (\>50 years) that has elements of both "TMAX" and "PRCP".
+
+```{r locnmatch, echo = TRUE}
+# Search for stations within a radius of a location
+
+lat_coord = -27.55; long_coord = 152.34
+
+local_meta_data <- aus_meta_data |> 
+  meteo_distance(lat = lat_coord, long = long_coord, radius = 5)
+
+```
+
+## Search for a station
+
+May also like to look for a station by name
+
+```{r namematch, echo = TRUE, eval = FALSE}
+# Search for stations that partially match a name
+
+search_term = "UNIVERSITY"
+
+local_meta_data <- aus_meta_data |> 
+  dplyr::filter(stringr::str_detect(name, search_term))
+```
+
+## Meta Data
+
+```{r print}
+local_meta_data
+```
+
+## Download the Data
+
+Download the data using `meteo_pull_monitors`
+
+Example using the station ID
+
+```{r download1, echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE}
+stn_id = "ASN00040082"
+stn_data <- rnoaa::meteo_pull_monitors(monitors = stn_id,
+                                    keep_flags =  TRUE,
+                                    var = "all")
+```
+
+or using the station name
+
+```{r download, echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE}
+stn_name = "UNIVERSITY OF QUEENSLAND GATTO"
+stn_id <- local_meta_data |>
+  dplyr::filter(name == stn_name) |>
+  dplyr::select(id) |>
+  dplyr::distinct() |>
+  dplyr::pull()
+
+# Downlaod the station ID
+stn_data <- rnoaa::meteo_pull_monitors(monitors = stn_id,
+                                    keep_flags =  TRUE,
+                                    var = "all")
+```
+
+## Preprocess the Data
+
+Light touch: Just doing the basics to tidy and format the data.
+
+```{r preprocessing, echo = TRUE}
+stn_data_preprocessed <- stn_data |>
+  
+  # Ensure Year format is a date 
+  dplyr::mutate(year = lubridate::year(date)) |> 
+  
+  # Select the relevant columns
+  dplyr::select(tmax, tmin, prcp, date, year) |> 
+  
+  # Pivot to a tidy long format
+  tidyr::pivot_longer(cols = c(tmax, tmin, prcp), names_to = "element", values_to = "observation") |>
+  
+  # Change the unit of measurement
+  dplyr::mutate(observation = as.numeric(observation)/10) |>
+  
+  # Filter out NA values (temperature)
+  dplyr::mutate(observation = if_else(
+    observation == 99 & element %in% c('tmax','tmin'),  
+    NA, observation))
+```
+
+## Get the maxima
+
+We want to get the highest observation each year. <br>\
+Light touch: Restrict to years with more than 90% of the observations each year.
+
+```{r blockmaxima, echo = TRUE}
+stn_max <- stn_data_preprocessed |> 
+  dplyr::group_by(year, element) |>
+  dplyr::summarise(max = max(observation, na.rm = TRUE),
+                   count = sum(as.numeric(!is.na(observation)))) |>
+  ungroup() |>
+  dplyr::filter(count > 365*0.9) |>
+  select(-count) 
+```
+
+## Get the maxima
+
+```{r}
+stn_max
+```
+
+## Plot the Maxima
+
+```{r maxplot, echo = FALSE, fig.width = 14, fig.height = 7, fig.align = 'center'}
+maxima_plot <- ggplot(stn_max, aes(x = max)) +
+  geom_histogram(aes(y = after_stat(density))) +
+  geom_density(color = "red", linetype = "dashed", size = 1.5) +
+  facet_wrap(~element, scale = "free") +
+  theme_bw() + 
+  xlab("Yearly Max") +
+  ylab("Density") 
+
+maxima_plot
+```
+
+-   Wettest Day of the year = Rx1d
+-   Hottest Day of the year for Maximum Temp = Txx
+-   Hottest Day of the year for Minimum Temp = Tnx
+
+## Plot the Maxima
+
+Code for producing the plot:
+
+```{r maxplotcode, echo = TRUE, fig.align='center'}
+ggplot(stn_max, aes(x = max)) +
+  geom_histogram(aes(y = after_stat(density))) +
+  geom_density(color = "red", linetype = "dashed", size = 1.5) +
+  facet_wrap(~element, scale = "free") +
+  theme_bw() + 
+  xlab("Yearly Max") +
+  ylab("Density") 
+```
+
+## Tidy the maxima
+
+-   Transform the data to a wide format the data for fitting
+
+-   Update to use the correct labels
+
+```{r tidymax, echo = TRUE}
+
+# Extract the block maxima
+max_df = stn_max |> 
+  tidyr::pivot_wider(names_from = element, values_from = max) |>
+  as.data.frame() |>
+  rename(rx1d = prcp, txx = tmax, tnx = tmin)
+
+max_df
+```
+
+## Your turn
+
+::: callout-tip
+## Practice Time
+
+-   Take some time now to explore the basic functions in `rnoaa`
+
+-   Either use my code to download some station data
+
+-   Or search for a station of interest to you and download that data
+
+-   Once you have your data, create a plot to check your maxima
+
+-   Also format your data to be ready for model fitting
+:::
+
+## Backups
+
+If its helpful you can also directly read in the files I've just used
+
+```{r eval = FALSE, echo = TRUE}
+# Be sure to set your working directory first
+
+aus_meta_data = read_csv("data/aus_meta_data.csv")
+
+stn_data = read_csv("data/UoQGatton_data.csv")
+
+```
+
+# Fitting a GEV
+
+Covering the basics
+
+## Fitting
+
+-   Practice using the precipitation maxima
+
+-   Fit a stationary GEV, so constant parameters
+
+-   $\mu = \mu_0$, $\sigma = \sigma_0$ and $\xi = \xi_0$.
+
+-   Using the R package extRemes [@extRemes-2]
+
+*Option 1:* Pass our data in as a vector
+
+```{r vecfit, echo = TRUE}
+# Extract the block maxima
+rx1d = max_df$rx1d
+
+# Fit the model
+rx1d_gev_fit_vec = extRemes::fevd(x = rx1d, type = "GEV")
+
+# Look at the parameters
+rx1d_gev_fit_vec$results$par |> round(2)
+```
+
+<br> Sanity check: Do the parameters look reasonable?
+
+## Fitting
+
+*Option 2:* Pass our data in as a data frame
+
+```{r dffit, echo = TRUE}
+fitting_data = max_df |> dplyr::select(year, rx1d) 
+
+# Fit the model
+rx1d_gev_fit = fevd(x = rx1d, data = fitting_data, type = "GEV")
+
+# Look at the parameters
+rx1d_gev_fit$results$par |> round(2)
+```
+
+<br> Sanity check: Do the parameters look reasonable?
+
+<br> Note you don't need to preselect your columns, I chose to to this to avoid dealing with NAs more directly.
+
+## Model fitting summary
+
+```{r fitsummary, echo = TRUE}
+rx1d_gev_fit
+```
+
+## Diagnostic plot
+
+```{r, echo = TRUE, fig.width = 8.5, fig.height = 6, fig.align = 'center'}
+plot(rx1d_gev_fit)
+```
+
+## Return periods and return levels
+
+We want to know the level that is exceeded on average 1 in every $100$ years:
+
+$$\mathbb{P}(M_n < z_{100}) \approx G(z_{100}) = \dfrac{1}{100}. $$
+
+Here we need to solve for $z_{100}$. This is what is known as the 1 in $100$ year return level.
+
+<br> *In generality:* The return level $z_{p}$ associated with a return period $p$ is: $$\mathbb{P}(M_n < z_{p}) \approx G(z_{p}) = \dfrac{1}{p}. $$
+
+## Return periods and return levels
+
+*Approach 1:* Can use the quantile function
+
+```{r qevd, echo = TRUE}
+pars = rx1d_gev_fit$results$par
+rl100 = qevd(p = 1/100, loc = pars[1], scale = pars[2], shape = pars[3], lower.tail = FALSE) 
+```
+
+A 1 in $100$ year event at this station is `r round(rl100)` mm. <br>
+
+But ... <br>
+
+That doesn't give CIs.
+
+## Return periods and return levels
+
+*Approach 2:* There is an inbuilt to estimate return levels from your fitted model with CIs
+
+```{r eval = TRUE, echo = TRUE}
+return.level(rx1d_gev_fit, return.period = 100, do.ci = TRUE)
+```
+
+## Annual Exceedance Probabilities
+
+"1 in 100s" can be confusing.
+
+::: incremental
+-   It isn't an event that happens exactly once ever 100 years.
+
+-   It doesn't mean we can't have two 1 in 100 year events in a row.
+
+-   It makes no sense in a non-stationary climate
+
+-   Now say the event with an Annual Exceedance Probability (AEP) of 0.01 instead
+:::
+
+## Return periods and return levels
+
+Estimating a multiple return levels using your model:
+
+```{r eval = TRUE, echo = TRUE}
+return_periods = c(2:500)
+
+return_levels = return.level(rx1d_gev_fit, return.period = return_periods, do.ci = TRUE)[,1:3] |> as.data.frame()
+
+names(return_levels) = c("lower", "estimate", "upper")
+return_levels$return_periods = return_periods
+```
+
+## Plot return periods and return levels
+
+```{r returnplotcode, echo = TRUE}
+# Get the 1 in 100 year return level
+rl100 = return_levels |>
+  dplyr::filter(return_periods == 100) |>
+  dplyr::pull(estimate)
+
+
+# Plot the return periods
+return_period_plot <- ggplot() + 
+  geom_ribbon(data = return_levels, aes(x = return_periods, ymin = lower, ymax = upper), alpha = 0.5, fill = "blue") + 
+  geom_line(data = return_levels, aes(x = return_periods, y = estimate)) + 
+  geom_line(data = NULL, aes(x = c(2, 100, 100), y = c(rl100, rl100,0)), linetype = "dashed") +
+  scale_x_log10(breaks = c(2,5,10,20,50,100,250,500)) +
+  theme_bw() + 
+  xlab('Return Period') + 
+  ylab('Return Level (mm)') + 
+  ggtitle(paste("Extreme Rainfall at", stn_id))
+
+```
+
+## Plot return periods and return levels
+
+```{r returnplot}
+return_period_plot 
+```
+
+## Your turn
+
+<br>
+
+::: callout-tip
+## Practice Time
+
+-   Fit a stationary GEV to your data
+
+-   Start with Rx1d (Rainfall)
+
+-   Look at your parameters and diagnostic plots
+
+-   Produce a plot of the return level
+
+-   Extra: Add your data points to the plot (use empirical quantiles).
+
+-   Skip ahead: Try fitting other variables
+
+-   Extension: Recreate some of the other diagnostic plots
+:::
+
+```{r echo = FALSE}
+emp_quantiles = ecdf(rx1d)(rx1d)
+```
+
+# Fitting a GEV
+
+Non-stationarity and Model Selection
+
+## Block Maxima data (Tmax)
+
+Prepare our data:
+
+-   Want a variable for year that is more intuitive
+
+```{r echo = TRUE, eval = TRUE}
+fitting_data = max_df |> 
+  dplyr::select(year, txx) |>
+  dplyr::filter(!is.na(txx)) |>
+  dplyr::mutate(year_transform = year - 2024)
+
+fitting_data
+```
+
+## Stationary GEV
+
+**Stationary Model:**<br> $\mu = \mu_0$, $\sigma = \sigma_0$ and $\xi = \xi_0$.
+
+```{r echo = TRUE, eval = TRUE}
+txx_gev_fit0 = fevd(x = txx, data = fitting_data, type = "GEV")
+txx_gev_fit0$results$par |> round(2)
+```
+
+## Non-stationary GEV
+
+<br> **Non-stationary model:** Linear shift in $\mu$. <br> $\mu = \mu_0 + \mu_1 (\text{year} - 2024)$ <br> $\sigma = \sigma_0$ <br> $xi = \xi_0$
+
+<br> **Code:** `location = ~year_transform`
+
+```{r echo = TRUE}
+txx_gev_fit1 = fevd(x = txx, data = fitting_data, type = "GEV", location = ~ year_transform)
+txx_gev_fit1$results$par |> round(2)
+```
+
+## Fitting a GEV ctd.
+
+**Non-stationary model:** Linear shift in location and scale: <br> $\mu = \mu_0 + \mu_1(\text{year} - 2024)$ <br> $\sigma = \sigma_0 + \sigma_1(\text{year} - \text{start year})$ <br> $\xi = \xi_0$
+
+<br> **Code:** <br> `location = ~year_transform` <br> `scale = ~year_transform`
+
+```{r echo = TRUE}
+txx_gev_fit2 = fevd(x = txx, data = fitting_data, type = "GEV", location = ~year_transform, scale = ~year_transform)
+txx_gev_fit2$results$par |> round(7)
+```
+
+<!-- ## Fitting a GEV ctd. -->
+
+<!-- Linear shift in location and step jump in scale:  -->
+
+<!-- <br> -->
+
+<!-- <br> **Non-stationary model:** <br>  -->
+
+<!-- $\mu = \mu_0 + \mu_1(\text{year} - 2024)$ <br>  -->
+
+<!-- $\sigma = \sigma_0 + \sigma_1 \cdot \mathbb{I}(\text{year} > 1960 )$ <br> -->
+
+<!-- $\xi = \xi_0$ -->
+
+<!-- ```{r echo = TRUE} -->
+
+<!-- fitting_data = fitting_data |> mutate(late = year - 1960) -->
+
+<!-- txx_gev_fit3 = fevd(x = txx, data = fitting_data, type = "GEV", location = ~year_transform, scale = ~ late) -->
+
+<!-- txx_gev_fit3$results$par |> round(2) -->
+
+<!-- ``` -->
+
+## Model Selection
+
+Which model is better?
+
+For **nested models** best to use the log-likelihood ratio test.
+
+Nested means the parameter function for the larger model can be written as subset of the smaller model.
+
+For non-nested models use an Information Criteria AIC/BIC - smaller is better.
+
+## Model Selection
+
+Model with a linear shift is best
+
+```{r echo = TRUE, eval = TRUE}
+#Stationary vs Linear shift in mu 
+lr.test(txx_gev_fit0, txx_gev_fit1)[4]
+
+#Stationary vs Linear shift in mu and in sigma 
+lr.test(txx_gev_fit0, txx_gev_fit2)[4]
+
+#Linear shift in mu vs Linear shift in mu and in sigma
+lr.test(txx_gev_fit1, txx_gev_fit2)[4]
+
+```
+
+## Check diagnostics
+
+Remember to look at the model you pick!
+
+```{r}
+plot(txx_gev_fit1)
+```
+
+## Your turn
+
+<br>
+
+::: callout-tip
+## Practice Time
+
+-   Fit a non-stationary GEV to your data
+
+-   Start with txx (Maximum Temp)
+
+-   Look at your parameters and diagnostic plots
+
+-   Determine if climate change has a significant linear influence on extremes
+
+-   You may also like to fit a GEV to tnx or rx1d
+
+-   Extension: Try other functional forms to smoothly vary your covariates, suggestions include an indicator function or ENSO covariate.
+:::
+
+# Return Levels Under Non-stationartiy
+
+## Conditional return revels
+
+Can estimate the return level conditional on a given year.
+
+```{r echo = TRUE}
+return_periods = c(2:1000)
+
+pars = txx_gev_fit1$results$par
+
+mu0 = pars[1] 
+mu1 = pars[2]
+scale = pars[3]
+shape = pars[4]
+
+get_cond_mu <- function(conditional_year, mu0, mu1){
+  mu = mu0 + mu1*(conditional_year - 2024)
+  return(mu)
+} 
+
+
+rls_cond2024 = qevd(1/return_periods, loc = get_cond_mu(2024, mu0, mu1), scale = scale, shape = shape, lower.tail = FALSE)
+
+rls_cond1924 = qevd(1/return_periods, loc = get_cond_mu(1924, mu0, mu1), scale = scale, shape = shape, lower.tail = FALSE)
+
+cond_rp = data.frame(return_periods, rls_cond2024, rls_cond1924) |> 
+  tidyr::pivot_longer(cols = 2:3, names_to = "cond", values_to = "rl")
+```
+
+## Plotting conditional return periods
+
+```{r, echo = TRUE, fig.align = 'center'}
+cond_plot <- ggplot(cond_rp) +
+  geom_line(aes(x = return_periods, y = rl, group = cond, col = cond)) + 
+  scale_x_log10(breaks = c(2,5,10,20,50,100,250,500)) +
+  theme_bw() + 
+  ylab("Return Level") + 
+  xlab("Return Period") +
+  scale_color_manual(labels = c("1924", "2024"), values = c("rls_cond2024" = "red", "rls_cond1924" = "blue")) +  xlim(c(0,150))
+
+cond_plot
+```
+
+## Plotting conditional return periods
+
+```{r fig.align='center'}
+cond_plot
+```
+
+<!-- ## Data points  -->
+
+<!-- ```{r} -->
+
+<!-- fitting_data$mu = get_cond_mu(fitting_data$year, mu0, mu1) -->
+
+<!-- fitting_data$cprob = NA -->
+
+<!-- for(i in 1:nrow(fitting_data)){ -->
+
+<!--   fitting_data$cprob[i] = pevd(fitting_data$txx[i], fitting_data$mu[i], scale, shape) -->
+
+<!-- } -->
+
+<!-- rl_1924 = qevd(fitting_data$cprob, loc = get_cond_mu(1924, mu0, mu1), scale = scale, shape = shape) -->
+
+<!-- rl_2024 = qevd(fitting_data$cprob, loc = get_cond_mu(2024, mu0, mu1), scale = scale, shape = shape) -->
+
+<!-- <!-- ``` -->
+
+<!-- ## Data transformations 1 -->
+
+<!-- *Step 1:* transform the data to a standard marginal form, $Z \approx GEV(0,1,0)$ -->
+
+<!-- <br> Use `trans` in built. -->
+
+<!-- ```{r echo = TRUE} -->
+
+<!-- gumbel_data = trans(txx_gev_fit1) -->
+
+<!-- ``` -->
+
+<!-- <br> Note $Z \approx GEV(1,1,1)$ is also a common transform for univariate GEV marginals. -->
+
+<!-- ## Data transformations 2 -->
+
+<!-- *Step 2:* Transform the data to the conditional distribution. -->
+
+<!-- <br> -->
+
+<!-- Use the `revtrans.evd` -->
+
+<!-- <br> -->
+
+<!-- For 2024: -->
+
+<!-- ```{r echo = TRUE} -->
+
+<!-- cond_year = 2024 -->
+
+<!-- transformed_obs_2024 = revtrans.evd(gumbel_data, loc = get_cond_mu(cond_year, mu0, mu1), scale = scale, shape = shape) -->
+
+<!-- ``` -->
+
+<!-- ## Data transformations 3 -->
+
+<!-- *Step 3:* Find the probability of those events from the fitted model. -->
+
+<!-- ```{r echo = TRUE} -->
+
+<!-- cprob_obs_2024 = pevd(transformed_obs_2024, loc = get_cond_mu(2024, mu0, mu1), scale = scale, shape = shape) -->
+
+<!-- ``` -->
+
+<!-- Now we have everything we need to add these points to the plot based conditional on the year. -->
+
+<!-- ## Rinse and repeat -->
+
+<!-- Repeat for 1924. -->
+
+<!-- ```{r echo = TRUE} -->
+
+<!-- cond_year = 1924   -->
+
+<!-- transformed_obs_1924 = revtrans.evd(gumbel_data, loc = get_cond_mu(cond_year, mu0, mu1), scale = scale, shape = shape) -->
+
+<!-- cprob_obs_1924 = pevd(transformed_obs_1924, loc = get_cond_mu(cond_year, mu0, mu1), scale = scale, shape = shape) -->
+
+<!-- ``` -->
+
+<!-- Combine into the data frame for plotting. -->
+
+<!-- ```{r echo = TRUE} -->
+
+<!-- fitting_data$yr2024 = transformed_obs_2024 -->
+
+<!-- fitting_data$prob2024 = cprob_obs_2024 -->
+
+<!-- fitting_data$yr1924 = transformed_obs_1924 -->
+
+<!-- fitting_data$prob1924 = cprob_obs_1924 -->
+
+<!-- ``` -->
+
+<!-- ## Plot Conditional Return Levels -->
+
+<!-- ```{r, fig.align='center'} -->
+
+<!-- ggplot() + -->
+
+<!--   geom_line(data = cond_rp, aes(x = return_periods, y = rl, group = cond, col = cond)) + -->
+
+<!--   geom_point(data = fitting_data, aes(x = 1/(1 - cprob_obs_2024), y = transformed_obs_2024), col = "red") + -->
+
+<!--    geom_point(data = fitting_data, aes(x = 1/(1 - cprob_obs_1924), y = transformed_obs_1924), col = "blue") + -->
+
+<!--   scale_x_log10(breaks = c(2,5,10,20,50,100,250,500)) + -->
+
+<!--   theme_bw() +  -->
+
+<!--   ylab("Return Level") +  -->
+
+<!--   xlab("Return Period") + -->
+
+<!--   scale_color_manual(labels = c("1924", "2024"), values = c("rls_cond2024" = "red", "rls_cond1924" = "blue")) +  -->
+
+<!--   xlim(c(0,150)) -->
+
+<!-- ``` -->
+
+## Your turn
+
+<br><br>
+
+::: callout-tip
+## Practice Time
+
+-   Produce a plot of the conditional return levels
+
+-   Extension: Use bootstrapping to simulate data and estimate CIs for your conditional return levels
+:::
+
+# Tips and tricks
+
+## Default
+
+<br>
+
+Default optimiser: Maximum Likelihood
+
+```{r echo = TRUE}
+set.seed(1)
+timeA = Sys.time()
+example_gev_fit_mle = fevd(x = revd(100), type = "GEV")
+timeB= Sys.time()
+timeB - timeA
+
+example_gev_fit_mle$results$par |> round(2)
+```
+
+## LMoments is quick!
+
+If you are fitting a lot of stationary GEVs you might like LMoments. <br>
+
+This is because LMoments is a non-parametric estimator.
+
+```{r echo = TRUE}
+set.seed(1)
+timeC = Sys.time()
+example_gev_fit_lmoments = fevd(x = revd(100), type = "GEV", method = "Lmoments")
+timeD= Sys.time()
+timeD - timeC
+
+example_gev_fit_lmoments$results |> round(2)
+```
+
+That's `r (as.numeric(timeB - timeA) / as.numeric(timeD - timeC)) |> round(2)` times as fast.
+
+## Quick debugs - use.phi
+
+-   If your model fails to fit one of the common reasons is that the scale parameter is negative.
+
+-   You can force the optimiser to fit the log of the scale parameter instead to avoid this - set `use.phi = TRUE`
+
+```{r usephi, echo = TRUE}
+set.seed(1)
+example_gev_fit_phi = fevd(x = revd(100), type = "GEV", use.phi = TRUE)
+
+example_gev_fit_phi$results$par
+
+exp(example_gev_fit_phi$results$par[2]) |> as.numeric() |> round(2)
+```
+
+## Optimiser is finicky
+
+-   Still having problems with your model fit, try initialising your parameter estimates using `initial`
+
+-   Lmoments is useful for automatically setting a starting point
+
+```{r initial, echo = TRUE}
+init_par = list("location" = -0.02, "scale" = 0.94, "shape" = 0.08)
+
+example_gev_fit_init = fevd(x = revd(100), type = "GEV", initial = init_par)
+
+example_gev_fit_init$results$par |> round(2)
+```
+
+-   Still not working, try a different starting point
+
+-   You should also check your data here for any problem observations
+
+## Handling a bad fit
+
+Fit enough of these distributions you will come into troubles with the optimiser.
+
+Example function replicating a failed fit:
+
+```{r, echo = TRUE}
+get_pars_from_model = function(vec){
+  
+  rand_samp = sample(c(0,0,0,0,1), 1)
+  
+  if(as.logical(rand_samp))
+    stop("Too bad your fit randomly fails :(")
+  
+  model_fit = fevd(vec)
+  pars = model_fit$results$par |> round(3)
+  return(pars)
+  
+}
+
+get_pars_from_model(revd(100))
+```
+
+## Trycatch
+
+When running a script or fitting multiple distributions to avoid optimiser errors use `tryCatch()`.
+
+```{r echo = TRUE}
+try_fit <- function(vec){
+  tryCatch(
+    {
+      pars <- get_pars_from_model(vec)
+      return(c(pars, "good"))
+    }, 
+    warning = function(w){
+      message(w)
+      return(c(NA, NA, NA, "warning"))
+    },
+    error = function(e){
+      message(e)
+      return(c(NA, NA, NA, "error"))
+    }
+  )
+}
+try_fit(revd(100))
+```
+
+## Handling a Bad Fit
+
+Here is an example:
+
+```{r echo = TRUE}
+```
+
+```{r echo = TRUE}
+set.seed(1)
+results = data.frame(matrix(NA, 10,4))
+for(i in 1:10){
+  results[i, ] = try_fit(revd(100))
+}
+
+results
+```
+
+# Fitting a Generalised Pareto
+
+Covering the basics
+
+## So far
+
+::: callout-tip
+## GEVs
+
+::: incremental
+-   GEV distributions are fit to data that is the largest observation in a block\
+    *eg. Wettest day of the year*
+
+-   In a given year, there may be more than one extreme observation
+
+-   In some years, maybe no observations are extreme
+
+-   But what if you want to use all the extreme observations to fit a distribution\
+    ie. $\mathbb{P}(X > y + u | X > u)$
+:::
+:::
+
+## Generalised Pareto Distribution
+
+::: callout-tip
+## Can fit a Generalised Pareto Distribution (GP, PoT)
+
+::: incremental
+-   Closely related to the GEV
+
+-   Model is fit to all observations exceeding a high threshold, $u$.
+
+-   The threshold, $u$, needs to be extreme, so that the approximation to limiting distribution is reasonable. *e.g* $q_u >= 0.95$
+
+-   Picking the threshold is a classic bias-variance trade-off.
+
+-   Note the GP distribution has two parameters not three, $\tilde{\sigma}$ and $\xi$.
+
+-   $\tilde{\sigma}$ is sort of like the scale parameter. $\tilde{\sigma} = \sigma + \xi(u - \mu)$
+
+-   Note that $\tilde{\sigma}$ is a linear function of $u$ (can use this to set the threshold).
+
+-   $\xi$ is the same as in the GEV.
+:::
+:::
+
+## Quick example
+
+```{r echo = TRUE}
+# Get our precipitation observations 
+prcp_obs = stn_data_preprocessed |>
+  dplyr::filter(element == "prcp") |>
+  dplyr::pull(observation)
+
+# Estimate a high threshold
+prcp_threshold = quantile(prcp_obs, 0.975, na.rm = TRUE)
+
+# Filter your data to the exceedances   
+prcp_exceedances = stn_data_preprocessed |>
+  dplyr::filter(element == "prcp" & 
+                  observation > prcp_threshold) |>
+  dplyr::pull(observation)
+
+# Fit a GP
+prcp_gp_fit = fevd(prcp_exceedances, threshold = prcp_threshold, type = "GP")
+  
+# Parameters 
+prcp_gp_fit$results$par
+```
+
+## Check your diagnostics
+
+```{r}
+plot(prcp_gp_fit)
+```
+
+## Other considerations
+
+::: callout-tip
+## Return Periods
+
+::: incremental
+-   For GEVs, the return periods were the number of *years* on average you expect to wait to see an event of a given return level
+
+-   But for GEVs, each observation represented a year
+
+-   For GPs, the return period is the the number of *observations* on average you expect before you see an event of a given level.
+
+-   As for GPs, you can have more than one observation per year
+
+-   In a stationary context, still quite interprettable, in a non-stationary context it gets a bit trickier.
+
+-   For these reasons, many people prefer a GEV.
+:::
+:::
+
+See Chapter 4 and 5 of [@coles2001].
+
+## Your turn
+
+<br><br>
+
+::: callout-tip
+## Practice Time
+
+-   Take some time now to fit a Generalised Pareto
+
+-   Extra: Look at how many extremes you have per year. (Can use the count code from earlier when we looked at how many observations per year.)
+
+-   We will also be wrapping up today's tutorial shortly, so get to some help to wrap up your code projects.
+:::
+
+# Overview
+
+## Summary
+
+::: callout-tip
+## Today:
+
+-   Learnt about the basics of extreme value distributions
+
+-   Covered how to fit these distributions in R
+
+-   Looked at return periods and the nuance of fitting these
+
+-   Covered some tips and tricks for fitting these distributions
+
+-   And I hope we've had fun!
+:::
+
+## References
+
+<!-- # Kate notes -->
+
+<!-- Return level plot - add dots -->
+
+<!-- Return level plot - non-stationary dots :( -->
+
+<!-- Fix reference slide -->
